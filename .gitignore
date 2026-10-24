@@ -1,0 +1,14 @@
+node_modules/
+dist/
+*.tsbuildinfo
+playwright-report/
+test-results/
+.env*
+!.env.example
+.local/
+.claude/
+.mcp.json
+CLAUDE.md
+NEW_PROJECT_SETUP.md
+WORKFLOW.md
+cc-workspace/

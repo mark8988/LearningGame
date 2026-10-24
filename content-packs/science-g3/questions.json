@@ -1,0 +1,842 @@
+[
+  {
+    "id": "sci-g3-u1-q01",
+    "unitId": "sci-g3-u1",
+    "stem": "植物主要用哪個部位吸收水分？",
+    "options": [
+      "根",
+      "花",
+      "果實",
+      "種子"
+    ],
+    "answerIndex": 0,
+    "explanation": "根能吸收土壤中的水分和養分。",
+    "difficulty": 1
+  },
+  {
+    "id": "sci-g3-u1-q02",
+    "unitId": "sci-g3-u1",
+    "stem": "植物的葉片主要有什麼功能？",
+    "options": [
+      "吸住泥土",
+      "製造養分",
+      "保護種子",
+      "吸引小鳥築巢"
+    ],
+    "answerIndex": 1,
+    "explanation": "葉片利用陽光、水和二氧化碳進行光合作用，製造養分。",
+    "difficulty": 1
+  },
+  {
+    "id": "sci-g3-u1-q03",
+    "unitId": "sci-g3-u1",
+    "stem": "哪個部位把水分運送到葉片？",
+    "options": [
+      "花瓣",
+      "果皮",
+      "莖",
+      "種皮"
+    ],
+    "answerIndex": 2,
+    "explanation": "莖內有運輸構造，能將根吸收的水分送往其他部位。",
+    "difficulty": 1
+  },
+  {
+    "id": "sci-g3-u1-q04",
+    "unitId": "sci-g3-u1",
+    "stem": "植物的花通常和什麼有關？",
+    "options": [
+      "吸收土壤的水",
+      "固定土壤",
+      "阻擋所有陽光",
+      "繁殖下一代"
+    ],
+    "answerIndex": 3,
+    "explanation": "花和植物的繁殖有關，授粉後有些花會形成果實。",
+    "difficulty": 1
+  },
+  {
+    "id": "sci-g3-u1-q05",
+    "unitId": "sci-g3-u1",
+    "stem": "果實裡面常常有什麼？",
+    "options": [
+      "種子",
+      "小石頭",
+      "羽毛",
+      "沙粒"
+    ],
+    "answerIndex": 0,
+    "explanation": "果實能保護種子，有些果實還能幫助種子傳播。",
+    "difficulty": 2
+  },
+  {
+    "id": "sci-g3-u1-q06",
+    "unitId": "sci-g3-u1",
+    "stem": "植物缺水時，葉片可能如何？",
+    "options": [
+      "長出羽毛",
+      "下垂萎軟",
+      "變成石頭",
+      "發出鈴聲"
+    ],
+    "answerIndex": 1,
+    "explanation": "植物缺水時細胞失去支撐，葉片可能萎軟下垂。",
+    "difficulty": 2
+  },
+  {
+    "id": "sci-g3-u1-q07",
+    "unitId": "sci-g3-u1",
+    "stem": "觀察葉脈時，用哪個工具較方便？",
+    "options": [
+      "溫度計",
+      "雨量筒",
+      "放大鏡",
+      "磁鐵"
+    ],
+    "answerIndex": 2,
+    "explanation": "放大鏡可以放大細部，方便看清楚葉脈的形狀。",
+    "difficulty": 2
+  },
+  {
+    "id": "sci-g3-u1-q08",
+    "unitId": "sci-g3-u1",
+    "stem": "蒲公英的種子主要靠什麼傳播？",
+    "options": [
+      "磁力",
+      "電力",
+      "雨量筒",
+      "風"
+    ],
+    "answerIndex": 3,
+    "explanation": "蒲公英果實有像降落傘的冠毛，容易隨風傳播。",
+    "difficulty": 2
+  },
+  {
+    "id": "sci-g3-u1-q09",
+    "unitId": "sci-g3-u1",
+    "stem": "種子發芽通常需要什麼？",
+    "options": [
+      "水分、空氣和適合的溫度",
+      "只有彩色燈光",
+      "完全乾燥的環境",
+      "大量鹽巴"
+    ],
+    "answerIndex": 0,
+    "explanation": "大多數種子發芽需要水分、空氣和適合的溫度。",
+    "difficulty": 2
+  },
+  {
+    "id": "sci-g3-u1-q10",
+    "unitId": "sci-g3-u1",
+    "stem": "榕樹與向日葵共同具有什麼？",
+    "options": [
+      "翅膀和腳",
+      "根、莖、葉",
+      "魚鰭和鰓",
+      "耳朵和毛髮"
+    ],
+    "answerIndex": 1,
+    "explanation": "它們都是植物，具有根、莖、葉等構造。",
+    "difficulty": 2
+  },
+  {
+    "id": "sci-g3-u1-q11",
+    "unitId": "sci-g3-u1",
+    "stem": "觀察植物時，哪個做法較適當？",
+    "options": [
+      "把整株拔起",
+      "折斷所有樹枝",
+      "拍照並記錄特徵",
+      "摘掉全部葉子"
+    ],
+    "answerIndex": 2,
+    "explanation": "拍照、畫圖與記錄能保護植物，也能留下觀察資料。",
+    "difficulty": 3
+  },
+  {
+    "id": "sci-g3-u1-q12",
+    "unitId": "sci-g3-u1",
+    "stem": "仙人掌的肉質莖可以幫助什麼？",
+    "options": [
+      "發出聲音",
+      "吸引磁鐵",
+      "變成動物",
+      "儲存水分"
+    ],
+    "answerIndex": 3,
+    "explanation": "肉質莖能儲存水分，幫助仙人掌適應乾燥環境。",
+    "difficulty": 3
+  },
+  {
+    "id": "sci-g3-u2-q01",
+    "unitId": "sci-g3-u2",
+    "stem": "哪種動物具有羽毛？",
+    "options": [
+      "麻雀",
+      "青蛙",
+      "蝴蝶",
+      "蝸牛"
+    ],
+    "answerIndex": 0,
+    "explanation": "鳥類具有羽毛，麻雀是鳥類。",
+    "difficulty": 1
+  },
+  {
+    "id": "sci-g3-u2-q02",
+    "unitId": "sci-g3-u2",
+    "stem": "昆蟲通常有幾隻腳？",
+    "options": [
+      "兩隻",
+      "六隻",
+      "四隻",
+      "八隻"
+    ],
+    "answerIndex": 1,
+    "explanation": "昆蟲的胸部有三對腳，也就是六隻腳。",
+    "difficulty": 1
+  },
+  {
+    "id": "sci-g3-u2-q03",
+    "unitId": "sci-g3-u2",
+    "stem": "魚主要用什麼在水中呼吸？",
+    "options": [
+      "羽毛",
+      "翅膀",
+      "鰓",
+      "觸角"
+    ],
+    "answerIndex": 2,
+    "explanation": "魚的鰓可以從水中取得氧氣。",
+    "difficulty": 1
+  },
+  {
+    "id": "sci-g3-u2-q04",
+    "unitId": "sci-g3-u2",
+    "stem": "哪種動物屬於哺乳類？",
+    "options": [
+      "蝴蝶",
+      "金魚",
+      "麻雀",
+      "貓"
+    ],
+    "answerIndex": 3,
+    "explanation": "貓以乳汁哺育幼兒，是哺乳類動物。",
+    "difficulty": 1
+  },
+  {
+    "id": "sci-g3-u2-q05",
+    "unitId": "sci-g3-u2",
+    "stem": "蝴蝶的幼蟲通常叫什麼？",
+    "options": [
+      "毛毛蟲",
+      "蝌蚪",
+      "小魚苗",
+      "雛鳥"
+    ],
+    "answerIndex": 0,
+    "explanation": "蝴蝶會經歷卵、幼蟲、蛹、成蟲；幼蟲常叫毛毛蟲。",
+    "difficulty": 2
+  },
+  {
+    "id": "sci-g3-u2-q06",
+    "unitId": "sci-g3-u2",
+    "stem": "青蛙的幼體叫什麼？",
+    "options": [
+      "毛毛蟲",
+      "蝌蚪",
+      "小雞",
+      "小貓"
+    ],
+    "answerIndex": 1,
+    "explanation": "蝌蚪生活在水中，成長後會逐漸長出腳。",
+    "difficulty": 2
+  },
+  {
+    "id": "sci-g3-u2-q07",
+    "unitId": "sci-g3-u2",
+    "stem": "蜘蛛和昆蟲的差別之一是什麼？",
+    "options": [
+      "蜘蛛有六隻腳",
+      "蜘蛛有羽毛",
+      "蜘蛛有八隻腳",
+      "蜘蛛沒有腳"
+    ],
+    "answerIndex": 2,
+    "explanation": "蜘蛛有四對腳，共八隻，不屬於昆蟲。",
+    "difficulty": 2
+  },
+  {
+    "id": "sci-g3-u2-q08",
+    "unitId": "sci-g3-u2",
+    "stem": "哪種動物通常有殼保護身體？",
+    "options": [
+      "麻雀",
+      "貓",
+      "蝴蝶",
+      "蝸牛"
+    ],
+    "answerIndex": 3,
+    "explanation": "蝸牛的殼能保護柔軟的身體。",
+    "difficulty": 2
+  },
+  {
+    "id": "sci-g3-u2-q09",
+    "unitId": "sci-g3-u2",
+    "stem": "觀察野生動物時應該怎麼做？",
+    "options": [
+      "保持距離安靜觀察",
+      "大聲追趕",
+      "抓回家飼養",
+      "亂丟食物"
+    ],
+    "answerIndex": 0,
+    "explanation": "保持距離、不干擾，才能保護動物和自己。",
+    "difficulty": 2
+  },
+  {
+    "id": "sci-g3-u2-q10",
+    "unitId": "sci-g3-u2",
+    "stem": "鯨魚雖然生活在海中，卻屬於什麼？",
+    "options": [
+      "昆蟲",
+      "哺乳類",
+      "鳥類",
+      "魚類"
+    ],
+    "answerIndex": 1,
+    "explanation": "鯨魚用肺呼吸，也以乳汁哺育幼兒，屬於哺乳類。",
+    "difficulty": 2
+  },
+  {
+    "id": "sci-g3-u2-q11",
+    "unitId": "sci-g3-u2",
+    "stem": "哪個特徵適合用來比較動物？",
+    "options": [
+      "名字字數",
+      "照片大小",
+      "身體構造",
+      "故事受歡迎程度"
+    ],
+    "answerIndex": 2,
+    "explanation": "可以比較腳、翅膀、體表等身體構造來認識動物。",
+    "difficulty": 3
+  },
+  {
+    "id": "sci-g3-u2-q12",
+    "unitId": "sci-g3-u2",
+    "stem": "哪種動物用鰭幫助游泳？",
+    "options": [
+      "麻雀",
+      "蝸牛",
+      "蝴蝶",
+      "金魚"
+    ],
+    "answerIndex": 3,
+    "explanation": "魚鰭能協助游泳、轉向與維持平衡。",
+    "difficulty": 3
+  },
+  {
+    "id": "sci-g3-u3-q01",
+    "unitId": "sci-g3-u3",
+    "stem": "測量氣溫時，溫度計應放在哪裡？",
+    "options": [
+      "通風陰涼處",
+      "陽光直射處",
+      "熱水裡",
+      "電暖器旁"
+    ],
+    "answerIndex": 0,
+    "explanation": "通風陰涼處可避免太陽直射或熱源影響氣溫讀數。",
+    "difficulty": 1
+  },
+  {
+    "id": "sci-g3-u3-q02",
+    "unitId": "sci-g3-u3",
+    "stem": "雨量筒主要測量什麼？",
+    "options": [
+      "風向",
+      "降雨量",
+      "氣溫",
+      "雲的顏色"
+    ],
+    "answerIndex": 1,
+    "explanation": "雨量筒收集雨水，用來測量一段時間的降雨量。",
+    "difficulty": 1
+  },
+  {
+    "id": "sci-g3-u3-q03",
+    "unitId": "sci-g3-u3",
+    "stem": "風向是指什麼？",
+    "options": [
+      "風吹去的方向",
+      "雲的形狀",
+      "風吹來的方向",
+      "太陽的高度"
+    ],
+    "answerIndex": 2,
+    "explanation": "風向指風吹來的方向；北風就是從北方吹來的風。",
+    "difficulty": 1
+  },
+  {
+    "id": "sci-g3-u3-q04",
+    "unitId": "sci-g3-u3",
+    "stem": "記錄每天的氣溫時，怎麼做較公平？",
+    "options": [
+      "每天換不同地方",
+      "隨時猜一個數字",
+      "只記最喜歡的天氣",
+      "固定時間與地點量測"
+    ],
+    "answerIndex": 3,
+    "explanation": "固定量測的時間與地點，資料才比較容易互相比較。",
+    "difficulty": 1
+  },
+  {
+    "id": "sci-g3-u3-q05",
+    "unitId": "sci-g3-u3",
+    "stem": "哪種工具可以觀察風向？",
+    "options": [
+      "風向標",
+      "放大鏡",
+      "天平",
+      "直尺"
+    ],
+    "answerIndex": 0,
+    "explanation": "風向標的箭頭能指出風吹來的方向。",
+    "difficulty": 2
+  },
+  {
+    "id": "sci-g3-u3-q06",
+    "unitId": "sci-g3-u3",
+    "stem": "氣溫常用哪個單位表示？",
+    "options": [
+      "公分",
+      "攝氏度",
+      "公斤",
+      "公升"
+    ],
+    "answerIndex": 1,
+    "explanation": "在臺灣，氣溫通常用攝氏度（°C）表示。",
+    "difficulty": 2
+  },
+  {
+    "id": "sci-g3-u3-q07",
+    "unitId": "sci-g3-u3",
+    "stem": "看到閃電並聽到雷聲時，應怎麼做？",
+    "options": [
+      "站到大樹下",
+      "在空地舉高雨傘",
+      "進入安全的室內",
+      "繼續在水中玩"
+    ],
+    "answerIndex": 2,
+    "explanation": "雷雨時應進入安全室內，避免空曠處、大樹下與水域。",
+    "difficulty": 2
+  },
+  {
+    "id": "sci-g3-u3-q08",
+    "unitId": "sci-g3-u3",
+    "stem": "雨量筒應放在哪裡？",
+    "options": [
+      "屋簷下",
+      "樹葉下",
+      "櫃子裡",
+      "上方無遮蔽物的平坦處"
+    ],
+    "answerIndex": 3,
+    "explanation": "雨量筒上方不應有遮蔽，才能正常收集降雨。",
+    "difficulty": 2
+  },
+  {
+    "id": "sci-g3-u3-q09",
+    "unitId": "sci-g3-u3",
+    "stem": "天空中水滴或冰晶聚集常形成什麼？",
+    "options": [
+      "雲",
+      "岩石",
+      "磁鐵",
+      "砂土"
+    ],
+    "answerIndex": 0,
+    "explanation": "雲由許多小水滴或冰晶聚集而成。",
+    "difficulty": 2
+  },
+  {
+    "id": "sci-g3-u3-q10",
+    "unitId": "sci-g3-u3",
+    "stem": "風力很大時，哪種現象可能發生？",
+    "options": [
+      "所有物體都不動",
+      "樹枝明顯搖動",
+      "雨水向上凝固",
+      "石頭自動發光"
+    ],
+    "answerIndex": 1,
+    "explanation": "風可以推動物體，風大時樹枝可能明顯搖動。",
+    "difficulty": 2
+  },
+  {
+    "id": "sci-g3-u3-q11",
+    "unitId": "sci-g3-u3",
+    "stem": "比較一週天氣，哪種做法最有幫助？",
+    "options": [
+      "只看一天的記憶",
+      "猜測下個月的雨量",
+      "每天留下觀測紀錄",
+      "用照片大小比較"
+    ],
+    "answerIndex": 2,
+    "explanation": "連續觀測並記錄，可以看出一段時間的天氣變化。",
+    "difficulty": 3
+  },
+  {
+    "id": "sci-g3-u3-q12",
+    "unitId": "sci-g3-u3",
+    "stem": "讀取溫度計時，視線應如何？",
+    "options": [
+      "從很高處往下看",
+      "從很低處往上看",
+      "閉眼讀取",
+      "與液柱頂端同高"
+    ],
+    "answerIndex": 3,
+    "explanation": "視線與液柱頂端同高，可減少讀取刻度時的誤差。",
+    "difficulty": 3
+  },
+  {
+    "id": "sci-g3-u4-q01",
+    "unitId": "sci-g3-u4",
+    "stem": "磁鐵最容易吸住哪個物品？",
+    "options": [
+      "鐵製迴紋針",
+      "塑膠尺",
+      "木筷",
+      "玻璃杯"
+    ],
+    "answerIndex": 0,
+    "explanation": "一般磁鐵能吸引鐵製物品，並非所有金屬都會被吸引。",
+    "difficulty": 1
+  },
+  {
+    "id": "sci-g3-u4-q02",
+    "unitId": "sci-g3-u4",
+    "stem": "磁鐵同極靠近時會如何？",
+    "options": [
+      "一定黏住",
+      "互相排斥",
+      "完全失去磁力",
+      "變成木頭"
+    ],
+    "answerIndex": 1,
+    "explanation": "磁鐵同極相斥，異極相吸。",
+    "difficulty": 1
+  },
+  {
+    "id": "sci-g3-u4-q03",
+    "unitId": "sci-g3-u4",
+    "stem": "磁鐵異極靠近時會如何？",
+    "options": [
+      "互相排斥",
+      "發出火焰",
+      "互相吸引",
+      "變成透明"
+    ],
+    "answerIndex": 2,
+    "explanation": "磁鐵的北極和南極互相吸引。",
+    "difficulty": 1
+  },
+  {
+    "id": "sci-g3-u4-q04",
+    "unitId": "sci-g3-u4",
+    "stem": "推動玩具車時，是對車施加了什麼？",
+    "options": [
+      "顏色",
+      "氣味",
+      "聲音大小",
+      "力"
+    ],
+    "answerIndex": 3,
+    "explanation": "推和拉都是施力，可能改變物體的運動情形。",
+    "difficulty": 1
+  },
+  {
+    "id": "sci-g3-u4-q05",
+    "unitId": "sci-g3-u4",
+    "stem": "哪個動作可能改變黏土形狀？",
+    "options": [
+      "用手按壓",
+      "只看著它",
+      "替它取名字",
+      "把燈關掉"
+    ],
+    "answerIndex": 0,
+    "explanation": "力可以改變物體的形狀，例如按壓黏土。",
+    "difficulty": 2
+  },
+  {
+    "id": "sci-g3-u4-q06",
+    "unitId": "sci-g3-u4",
+    "stem": "磁鐵的磁力通常在哪裡最強？",
+    "options": [
+      "正中間一定最強",
+      "兩端的磁極",
+      "只有表面文字處",
+      "只有繩子上"
+    ],
+    "answerIndex": 1,
+    "explanation": "條形磁鐵的兩端磁極通常具有較強的磁力。",
+    "difficulty": 2
+  },
+  {
+    "id": "sci-g3-u4-q07",
+    "unitId": "sci-g3-u4",
+    "stem": "指南針主要利用什麼工作？",
+    "options": [
+      "水會向北流",
+      "玻璃會吸陽光",
+      "磁針會受地球磁場影響",
+      "紙張會追風"
+    ],
+    "answerIndex": 2,
+    "explanation": "指南針的磁針受地球磁場作用，能協助辨認方向。",
+    "difficulty": 2
+  },
+  {
+    "id": "sci-g3-u4-q08",
+    "unitId": "sci-g3-u4",
+    "stem": "磁鐵隔著一張薄紙，可能吸起鐵釘嗎？",
+    "options": [
+      "絕對不可能",
+      "紙一定會燃燒",
+      "鐵釘一定變成紙",
+      "可能"
+    ],
+    "answerIndex": 3,
+    "explanation": "磁力可穿過薄紙等部分物體，仍能吸引鐵製物品。",
+    "difficulty": 2
+  },
+  {
+    "id": "sci-g3-u4-q09",
+    "unitId": "sci-g3-u4",
+    "stem": "把球往另一方向推，可能發生什麼？",
+    "options": [
+      "球的運動方向改變",
+      "球變成木頭",
+      "球的顏色一定改變",
+      "球一定消失"
+    ],
+    "answerIndex": 0,
+    "explanation": "施力可能改變物體的速度或運動方向。",
+    "difficulty": 2
+  },
+  {
+    "id": "sci-g3-u4-q10",
+    "unitId": "sci-g3-u4",
+    "stem": "哪個物品通常不會被一般磁鐵吸引？",
+    "options": [
+      "鐵釘",
+      "橡皮擦",
+      "鐵製迴紋針",
+      "鐵片"
+    ],
+    "answerIndex": 1,
+    "explanation": "橡皮擦不是鐵磁性材料，通常不會被一般磁鐵吸引。",
+    "difficulty": 2
+  },
+  {
+    "id": "sci-g3-u4-q11",
+    "unitId": "sci-g3-u4",
+    "stem": "用橡皮筋拉動玩具車時，橡皮筋提供什麼？",
+    "options": [
+      "降雨量",
+      "光合作用",
+      "拉力",
+      "蒸發作用"
+    ],
+    "answerIndex": 2,
+    "explanation": "拉長的橡皮筋回縮時，會對玩具車產生拉力。",
+    "difficulty": 3
+  },
+  {
+    "id": "sci-g3-u4-q12",
+    "unitId": "sci-g3-u4",
+    "stem": "測試磁鐵能否吸住物品時，應怎麼做？",
+    "options": [
+      "只根據顏色猜",
+      "把所有物品丟掉",
+      "只看物品價格",
+      "逐一測試並記錄"
+    ],
+    "answerIndex": 3,
+    "explanation": "逐一實驗並記錄，才能比較物品是否會被磁鐵吸引。",
+    "difficulty": 3
+  },
+  {
+    "id": "sci-g3-u5-q01",
+    "unitId": "sci-g3-u5",
+    "stem": "冰塊融化後變成什麼？",
+    "options": [
+      "液態的水",
+      "沙子",
+      "食鹽",
+      "木頭"
+    ],
+    "answerIndex": 0,
+    "explanation": "冰是固態的水，融化後成為液態水。",
+    "difficulty": 1
+  },
+  {
+    "id": "sci-g3-u5-q02",
+    "unitId": "sci-g3-u5",
+    "stem": "水放進冷凍庫結冰，稱為什麼？",
+    "options": [
+      "溶解",
+      "凝固",
+      "燃燒",
+      "生長"
+    ],
+    "answerIndex": 1,
+    "explanation": "水由液態變成固態冰的過程稱為凝固。",
+    "difficulty": 1
+  },
+  {
+    "id": "sci-g3-u5-q03",
+    "unitId": "sci-g3-u5",
+    "stem": "食鹽放進水裡攪拌後看不見，可能是什麼？",
+    "options": [
+      "食鹽完全消失不存在",
+      "食鹽變成木頭",
+      "食鹽溶解在水裡",
+      "水變成磁鐵"
+    ],
+    "answerIndex": 2,
+    "explanation": "食鹽溶解後仍存在水中，只是不容易直接看見。",
+    "difficulty": 1
+  },
+  {
+    "id": "sci-g3-u5-q04",
+    "unitId": "sci-g3-u5",
+    "stem": "哪個物品通常不容易溶解在水中？",
+    "options": [
+      "少量食鹽",
+      "少量砂糖",
+      "少量冰糖",
+      "小石頭"
+    ],
+    "answerIndex": 3,
+    "explanation": "小石頭通常不會像砂糖或食鹽那樣溶解在水中。",
+    "difficulty": 1
+  },
+  {
+    "id": "sci-g3-u5-q05",
+    "unitId": "sci-g3-u5",
+    "stem": "濕衣服晾乾主要和什麼有關？",
+    "options": [
+      "水分蒸發",
+      "水分變成鐵",
+      "衣服吸收磁力",
+      "衣服產生泥土"
+    ],
+    "answerIndex": 0,
+    "explanation": "衣服裡的水分蒸發，變成看不見的水蒸氣。",
+    "difficulty": 2
+  },
+  {
+    "id": "sci-g3-u5-q06",
+    "unitId": "sci-g3-u5",
+    "stem": "冰杯外面出現小水珠，主要是因為什麼？",
+    "options": [
+      "杯子一定破洞",
+      "空氣中的水蒸氣遇冷凝結",
+      "玻璃融化",
+      "冰塊穿過杯壁"
+    ],
+    "answerIndex": 1,
+    "explanation": "空氣中的水蒸氣遇到冷杯壁，會凝結成液態水珠。",
+    "difficulty": 2
+  },
+  {
+    "id": "sci-g3-u5-q07",
+    "unitId": "sci-g3-u5",
+    "stem": "水的三態是哪三種？",
+    "options": [
+      "紅色、藍色、綠色",
+      "上方、中間、下方",
+      "固態、液態、氣態",
+      "明亮、昏暗、透明"
+    ],
+    "answerIndex": 2,
+    "explanation": "冰、液態水和水蒸氣，是水的固態、液態和氣態。",
+    "difficulty": 2
+  },
+  {
+    "id": "sci-g3-u5-q08",
+    "unitId": "sci-g3-u5",
+    "stem": "怎樣能幫助砂糖較快溶解？",
+    "options": [
+      "把杯子放到黑暗處",
+      "在杯外畫畫",
+      "改變杯子的名字",
+      "攪拌"
+    ],
+    "answerIndex": 3,
+    "explanation": "在其他條件相同時，攪拌能幫助砂糖較快溶解。",
+    "difficulty": 2
+  },
+  {
+    "id": "sci-g3-u5-q09",
+    "unitId": "sci-g3-u5",
+    "stem": "持續加入大量食鹽，水能無限溶解嗎？",
+    "options": [
+      "不能，溶解量有上限",
+      "能，永遠沒有上限",
+      "能，但水會變成紙",
+      "一定全部變成冰"
+    ],
+    "answerIndex": 0,
+    "explanation": "在一定溫度和水量下，食鹽能溶解的量有上限。",
+    "difficulty": 2
+  },
+  {
+    "id": "sci-g3-u5-q10",
+    "unitId": "sci-g3-u5",
+    "stem": "加熱水時，應注意什麼？",
+    "options": [
+      "用手直接摸熱水",
+      "由大人協助並避免燙傷",
+      "把臉貼近蒸氣",
+      "把熱水端著奔跑"
+    ],
+    "answerIndex": 1,
+    "explanation": "熱水與蒸氣可能造成燙傷，加熱實驗應由大人協助。",
+    "difficulty": 2
+  },
+  {
+    "id": "sci-g3-u5-q11",
+    "unitId": "sci-g3-u5",
+    "stem": "水蒸氣是什麼狀態？",
+    "options": [
+      "固態",
+      "一定是白色粉末",
+      "氣態",
+      "液態冰塊"
+    ],
+    "answerIndex": 2,
+    "explanation": "水蒸氣是氣態的水，通常看不見。",
+    "difficulty": 3
+  },
+  {
+    "id": "sci-g3-u5-q12",
+    "unitId": "sci-g3-u5",
+    "stem": "比較攪拌對溶解的影響，應保持什麼相同？",
+    "options": [
+      "只有杯子名字",
+      "只有觀察者衣服",
+      "只有桌子顏色",
+      "水量、水溫與砂糖量"
+    ],
+    "answerIndex": 3,
+    "explanation": "只改變是否攪拌，保持其他條件相同，才能公平比較。",
+    "difficulty": 3
+  }
+]

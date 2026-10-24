@@ -1,0 +1,62 @@
+[
+  {
+    "id": "bed",
+    "name": "森林小床",
+    "kind": "furniture",
+    "rarity": "common",
+    "price": 40,
+    "asset": "procedural:bed",
+    "obtainFrom": [
+      "starter",
+      "shop"
+    ],
+    "gridW": 3,
+    "gridH": 2,
+    "layer": 1
+  },
+  {
+    "id": "desk",
+    "name": "木書桌",
+    "kind": "furniture",
+    "rarity": "common",
+    "price": 50,
+    "asset": "procedural:desk",
+    "obtainFrom": [
+      "starter",
+      "shop"
+    ],
+    "gridW": 2,
+    "gridH": 1,
+    "layer": 1
+  },
+  {
+    "id": "chair",
+    "name": "小木椅",
+    "kind": "furniture",
+    "rarity": "common",
+    "price": 60,
+    "asset": "procedural:chair",
+    "obtainFrom": [
+      "starter",
+      "shop"
+    ],
+    "gridW": 1,
+    "gridH": 1,
+    "layer": 1
+  },
+  {
+    "id": "rug",
+    "name": "葉子地毯",
+    "kind": "furniture",
+    "rarity": "common",
+    "price": 70,
+    "asset": "procedural:rug",
+    "obtainFrom": [
+      "starter",
+      "shop"
+    ],
+    "gridW": 3,
+    "gridH": 2,
+    "layer": 0
+  }
+]

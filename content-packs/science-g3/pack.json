@@ -1,0 +1,15 @@
+{
+  "id": "science-g3",
+  "name": "國小三年級・自然探險",
+  "version": "0.1.0",
+  "subject": "自然",
+  "grade": 3,
+  "unitIds": [
+    "sci-g3-u1",
+    "sci-g3-u2",
+    "sci-g3-u3",
+    "sci-g3-u4",
+    "sci-g3-u5"
+  ],
+  "demo": true
+}

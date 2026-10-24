@@ -1,0 +1,151 @@
+[
+  {
+    "id": "sci-g3-u1",
+    "name": "植物構造與功能",
+    "order": 1,
+    "boss": {
+      "name": "森林樹靈",
+      "asset": "procedural:plant",
+      "hp": 145,
+      "attack": 22
+    },
+    "questionPool": [
+      "sci-g3-u1-q01",
+      "sci-g3-u1-q02",
+      "sci-g3-u1-q03",
+      "sci-g3-u1-q04",
+      "sci-g3-u1-q05",
+      "sci-g3-u1-q06",
+      "sci-g3-u1-q07",
+      "sci-g3-u1-q08",
+      "sci-g3-u1-q09",
+      "sci-g3-u1-q10",
+      "sci-g3-u1-q11",
+      "sci-g3-u1-q12"
+    ],
+    "encyclopediaIds": [
+      "sci-g3-u1-e01"
+    ],
+    "dropTableId": "drops-u1"
+  },
+  {
+    "id": "sci-g3-u2",
+    "name": "動物分類",
+    "order": 2,
+    "boss": {
+      "name": "雲羽守護獸",
+      "asset": "procedural:animal",
+      "hp": 155,
+      "attack": 24
+    },
+    "questionPool": [
+      "sci-g3-u2-q01",
+      "sci-g3-u2-q02",
+      "sci-g3-u2-q03",
+      "sci-g3-u2-q04",
+      "sci-g3-u2-q05",
+      "sci-g3-u2-q06",
+      "sci-g3-u2-q07",
+      "sci-g3-u2-q08",
+      "sci-g3-u2-q09",
+      "sci-g3-u2-q10",
+      "sci-g3-u2-q11",
+      "sci-g3-u2-q12"
+    ],
+    "encyclopediaIds": [
+      "sci-g3-u2-e01"
+    ],
+    "dropTableId": "drops-u2",
+    "unlockAfter": "sci-g3-u1"
+  },
+  {
+    "id": "sci-g3-u3",
+    "name": "天氣觀測",
+    "order": 3,
+    "boss": {
+      "name": "風暴魔王",
+      "asset": "procedural:weather",
+      "hp": 165,
+      "attack": 26
+    },
+    "questionPool": [
+      "sci-g3-u3-q01",
+      "sci-g3-u3-q02",
+      "sci-g3-u3-q03",
+      "sci-g3-u3-q04",
+      "sci-g3-u3-q05",
+      "sci-g3-u3-q06",
+      "sci-g3-u3-q07",
+      "sci-g3-u3-q08",
+      "sci-g3-u3-q09",
+      "sci-g3-u3-q10",
+      "sci-g3-u3-q11",
+      "sci-g3-u3-q12"
+    ],
+    "encyclopediaIds": [
+      "sci-g3-u3-e01"
+    ],
+    "dropTableId": "drops-u3",
+    "unlockAfter": "sci-g3-u2"
+  },
+  {
+    "id": "sci-g3-u4",
+    "name": "力與磁鐵",
+    "order": 4,
+    "boss": {
+      "name": "磁石巨人",
+      "asset": "procedural:magnet",
+      "hp": 175,
+      "attack": 28
+    },
+    "questionPool": [
+      "sci-g3-u4-q01",
+      "sci-g3-u4-q02",
+      "sci-g3-u4-q03",
+      "sci-g3-u4-q04",
+      "sci-g3-u4-q05",
+      "sci-g3-u4-q06",
+      "sci-g3-u4-q07",
+      "sci-g3-u4-q08",
+      "sci-g3-u4-q09",
+      "sci-g3-u4-q10",
+      "sci-g3-u4-q11",
+      "sci-g3-u4-q12"
+    ],
+    "encyclopediaIds": [
+      "sci-g3-u4-e01"
+    ],
+    "dropTableId": "drops-u4",
+    "unlockAfter": "sci-g3-u3"
+  },
+  {
+    "id": "sci-g3-u5",
+    "name": "溶解與水的三態",
+    "order": 5,
+    "boss": {
+      "name": "冰晶水精靈",
+      "asset": "procedural:water",
+      "hp": 185,
+      "attack": 30
+    },
+    "questionPool": [
+      "sci-g3-u5-q01",
+      "sci-g3-u5-q02",
+      "sci-g3-u5-q03",
+      "sci-g3-u5-q04",
+      "sci-g3-u5-q05",
+      "sci-g3-u5-q06",
+      "sci-g3-u5-q07",
+      "sci-g3-u5-q08",
+      "sci-g3-u5-q09",
+      "sci-g3-u5-q10",
+      "sci-g3-u5-q11",
+      "sci-g3-u5-q12"
+    ],
+    "encyclopediaIds": [
+      "sci-g3-u5-e01"
+    ],
+    "dropTableId": "drops-u5",
+    "unlockAfter": "sci-g3-u4"
+  }
+]

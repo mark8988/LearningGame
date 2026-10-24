@@ -1,0 +1,70 @@
+import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { ArrowLeft, ArrowRight, BookOpen, Check, ChevronRight, CircleHelp, Coins, Compass, Heart, Home, Leaf, LockKeyhole, Maximize2, Mountain, RotateCcw, Shield, Sparkles, Sprout, Star, Trophy, X } from 'lucide-react';
+import { boot, bootError, type Screen } from '../stores/gameStore';
+import { isUnlocked, levelFromXp } from '../logic/battle';
+import { World3D } from '../components/World3D';
+
+const icons = [Sprout, Leaf, Mountain, Shield, Sparkles];
+function Brand() { return <div className="brand"><span className="brand-icon"><Sprout size={27} strokeWidth={1.7} /></span><div><b>森知冒險</b><span>FOREST OF CURIOSITY</span></div></div>; }
+function Badge({ children }: { children: ReactNode }) { return <span className="eyebrow">{children}</span>; }
+function Meter({ value, max, label, boss = false }: { value: number; max: number; label: string; boss?: boolean }) { return <div className={`meter ${boss ? 'boss-meter' : ''}`}><div><span>{label}</span><b>{value} <small>/ {max}</small></b></div><progress max={max} value={value} aria-label={`${label}生命值`} /></div>; }
+
+export function App() {
+  return boot ? <Game /> : <main className="boot-error"><Brand /><h1>冒險世界暫時無法載入</h1><p role="alert">{bootError}</p><p>請檢查內容包資料，修正後重新整理。</p></main>;
+}
+function Game() {
+  const game = boot!.store();
+  const { player, screen, pack, battle, result } = game;
+  const [help, setHelp] = useState(false);
+  const [leave, setLeave] = useState(false);
+  const level = levelFromXp(player.xp);
+  const next = pack.units.find(u => !player.clearedUnitIds.includes(u.id)) ?? pack.units[0];
+  const navigate = (target: 'home' | 'map') => { if (screen === 'battle') { setLeave(true); } else game.navigate(target); };
+  const title: Record<Screen, string> = { home: '我的森林小屋', map: '展開自然的冒險', battle: battle?.unit.name ?? '自然挑戰', result: result?.won ? '好奇心，讓你更強大！' : '每次探索，都有新發現' };
+  return <div className="app-shell">
+    <aside className="sidebar"><Brand /><div className="sidebar-label">我的探險日常</div><nav aria-label="主要導覽"><button className={screen === 'home' ? 'active' : ''} onClick={() => navigate('home')}><Home size={19} />我的小屋<span className="nav-dot" /></button><button className={screen !== 'home' ? 'active' : ''} onClick={() => navigate('map')}><Compass size={19} />冒險地圖<ChevronRight size={16} /></button></nav>
+      <div className="coming-soon"><span>接下來的冒險</span><p><BookOpen size={17} />知識圖鑑<small>籌備中</small></p><p><Sparkles size={17} />收藏與裝扮<small>籌備中</small></p></div>
+      <div className="side-bottom"><div className="seed-card"><Leaf size={25} /><b>每天一點好奇心</b><p>大大的世界，<br />藏在小小的問題裡。</p></div><button className="help-button" onClick={() => setHelp(true)}><CircleHelp size={17} />探險指南</button><span className="version">學習冒險 · 開發預覽 0.1</span></div>
+    </aside>
+    <main className="main-area"><header className="topbar"><span className="breadcrumb">我的世界 <ChevronRight size={13} /> <b>{screen === 'home' ? '森林小屋' : screen === 'map' ? '冒險地圖' : screen === 'battle' ? '自然挑戰' : '冒險回顧'}</b></span><div className="player-badges"><span className="coin-badge"><Coins size={18} /> <b data-testid="coins">{player.coins}</b><small>金幣</small></span><span className="profile-avatar">小</span><div><b>小小探險家</b><span>Lv. {level} 自然學徒</span></div></div></header>
+      {game.warning && <div className="warning" role="alert">{game.warning}<button aria-label="關閉提醒" onClick={game.dismissWarning}><X size={16} /></button></div>}
+      <div className="page-content"><div className="page-heading"><div><Badge><span />{screen === 'home' ? 'A LITTLE HOME, A BIG ADVENTURE' : screen === 'map' ? 'LET YOUR CURIOSITY LEAD THE WAY' : 'GROW WITH EVERY DISCOVERY'}</Badge><h1>{title[screen]}</h1><p>{screen === 'home' ? '歡迎回家，探險家。今天想發現什麼新鮮事？' : screen === 'map' ? '從一片葉子開始，一步步解開自然的祕密。' : screen === 'battle' ? '仔細想一想，用知識守護這片森林。' : '把新學到的知識，裝進你的探險背包。'}</p></div><div className={`save-indicator ${game.saveStatus}`}><span />{game.saveStatus === 'saved' ? '進度已儲存' : game.saveStatus === 'pending' ? '正在儲存…' : '存檔需協助'}</div></div>
+      {screen === 'home' && <>
+        <div className="home-grid"><section className="scene-card home-scene"><div className="scene-label"><Home size={16} /><span>森林裡的一隅</span><i>我的小屋</i></div><World3D mode="home" player={player} units={pack.units} /><div className="scene-caption"><span><span className="sun-dot" />晴朗 · 適合探險的一天</span><span><Maximize2 size={13} />拖曳旋轉 · 滾動縮放</span></div></section>
+        <aside className="adventure-panel"><div className="panel-top"><span className="small-icon"><Compass size={22} /></span><span>下一站，去探索</span></div><Badge>自然探險 · 三年級</Badge><h2>{next.name}</h2><p>森林的守護者正在等你，<br />帶上好奇心，一起出發吧！</p><div className="mini-landscape"><Sprout size={54} strokeWidth={1} /><span className="orbit orbit-one" /><span className="orbit orbit-two" /><Leaf size={20} className="floating-leaf" /></div><div className="panel-meta"><span><BookOpen size={15} />每場最多 10 道挑戰</span><span><Coins size={15} />通關賺金幣</span></div><button className="primary" onClick={() => game.navigate('map')}>開始冒險<ArrowRight size={18} /></button><span className="panel-note">不怕答錯，每一次都是學習。</span></aside></div>
+        <div className="section-heading"><h2>一點一滴，都是成長</h2><span>你的探險足跡</span></div><div className="stats-grid"><Stat icon={<Mountain size={22} />} label="探索的單元" value={`${player.clearedUnitIds.length}`} suffix={`/ ${pack.units.length}`} note="每一站都有新發現" /><Stat icon={<Check size={22} />} label="答對的問題" value={`${player.stats.correct}`} suffix="題" note="知識正在悄悄發芽" /><Stat icon={<Star size={22} />} label="收集的星星" value={`${Object.values(player.unitStars).reduce((a, b) => a + b, 0)}`} suffix="顆" note="留給努力的你" /></div>
+        <div className="tip-strip"><span><Leaf size={19} /></span><p><b>森林小知識</b>植物的葉片就像小小的廚房，利用陽光製造生長需要的養分。</p><span>保持好奇 <Sparkles size={15} /></span></div>
+      </>}
+      {screen === 'map' && <><section className="scene-card map-scene"><div className="scene-label"><Compass size={16} /><span>自然探險群島</span><i>{player.clearedUnitIds.length} / 5 已探索</i></div><World3D mode="map" player={player} units={pack.units} onSelect={game.startBattle} /><div className="scene-caption"><span>循著好奇心，一站一站前進</span><span>拖曳可旋轉 3D 地圖</span></div></section><div className="unit-grid">{pack.units.map((unit, i) => { const unlocked = isUnlocked(unit, player.clearedUnitIds); const Icon = icons[i]; return <button key={unit.id} className={`unit-card ${unlocked ? '' : 'locked'}`} disabled={!unlocked} onClick={() => game.startBattle(unit.id)}><span className="unit-number">0{i + 1}</span><span className="unit-icon"><Icon size={26} /></span><h2>{unit.name}</h2><p>{unit.boss.name}</p><div className="unit-stars">{[1, 2, 3].map(n => <Star key={n} size={15} fill={(player.unitStars[unit.id] ?? 0) >= n ? 'currentColor' : 'none'} />)}</div><span className="unit-action">{unlocked ? <>進入挑戰<ArrowRight size={15} /></> : <><LockKeyhole size={14} />通過前一關解鎖</>}</span></button>; })}</div></>}
+      {screen === 'battle' && battle && <div className="battle-layout"><section className="scene-card battle-scene"><div className="battle-health"><Meter value={battle.playerHp} max={battle.playerMaxHp} label={`探險家 Lv.${battle.level}`} /><span className="versus">VS</span><Meter value={battle.bossHp} max={battle.unit.boss.hp} label={battle.unit.boss.name} boss /></div><World3D mode="battle" player={player} units={pack.units} unit={battle.unit} hit={!!battle.feedback?.correct} /><div className="scene-caption"><span><Heart size={14} />外觀不影響戰鬥能力</span><button onClick={() => setLeave(true)}><ArrowLeft size={14} />返回地圖</button></div>{battle.feedback && <div className={`damage-pop ${battle.feedback.correct ? '' : 'miss'}`}>{battle.feedback.critical ? '爆擊！' : battle.feedback.correct ? '知識的力量' : '再想一想'} −{battle.feedback.damage}</div>}</section>
+        <section className="question-card" aria-label="答題挑戰"><div className="question-meta"><Badge>知識挑戰</Badge><span>第 {battle.index + 1} / {battle.questions.length} 題</span></div><div className="question-dots">{battle.questions.map((q, i) => <span key={q.id} className={i < battle.index ? 'done' : i === battle.index ? 'current' : ''} />)}</div><h2>{battle.questions[battle.index].stem}</h2><div className="answers">{battle.questions[battle.index].options.map((answer, i) => <button key={`${battle.index}-${i}`} disabled={!!battle.feedback} className={battle.feedback ? i === battle.questions[battle.index].answerIndex ? 'correct' : i === battle.feedback.choice ? 'incorrect' : '' : ''} onClick={() => game.answer(i)}><span>{String.fromCharCode(65 + i)}</span>{answer}{battle.feedback && i === battle.questions[battle.index].answerIndex && <Check size={18} />}</button>)}</div>
+          {battle.feedback ? <div className={`feedback ${battle.feedback.correct ? '' : 'wrong'}`} role="status"><b>{battle.feedback.correct ? '答對了，做得好！' : '沒關係，一起學起來！'}</b><p>{battle.questions[battle.index].explanation}</p><button className="primary" onClick={game.nextTurn}>{battle.outcome ? '看看冒險成果' : '繼續挑戰'}<ArrowRight size={17} /></button></div> : <p className="question-hint"><CircleHelp size={15} />慢慢想，沒有時間限制。</p>}
+        </section></div>}
+      {screen === 'result' && result && <div className="result-grid"><section className="scene-card result-scene"><World3D mode="result" player={player} units={pack.units} /><div className="scene-caption"><span>小小的努力，大大的成長</span><span>Lv. {level} 自然學徒</span></div></section><section className="result-card"><span className="result-icon">{result.won ? <Trophy size={32} /> : <Sprout size={32} />}</span><Badge>{result.firstClear ? '第一次的探索，特別值得紀念' : '每次出發，都有收穫'}</Badge><h2>{result.won ? '挑戰成功！' : '休息一下，再出發'}</h2><p>{result.unitName} · 答對 {result.correct} / {result.answered} 題</p>{result.won && <div className="result-stars">{[1, 2, 3].map(n => <Star key={n} size={32} fill={result.stars >= n ? 'currentColor' : 'none'} />)}</div>}<div className="reward-row"><span><Coins size={22} /><b>+{result.coins}</b><small>金幣</small></span><span><Sparkles size={22} /><b>+{result.xp}</b><small>冒險經驗</small></span></div><p className="result-note">{result.won ? '新的單元已解鎖，繼續探索吧！' : '已得的獎勵都還在，答錯的題目也幫你記下了。'}</p><button className="primary" onClick={() => game.navigate('map')}>回到冒險地圖<ArrowRight size={17} /></button><button className="text-button" onClick={() => game.navigate('home')}><Home size={16} />回小屋休息</button></section></div>}
+      <footer><span><Sprout size={14} />讓學習，成為一場喜歡的冒險。</span><span>三年級自然 · 示範內容包</span></footer></div>
+    </main>
+    {help && <Dialog title="給小小探險家的指南" onClose={() => setHelp(false)}><p>從冒險地圖選擇已解鎖的單元。每次挑戰最多 10 題，答對能攻擊守護者，答錯會顯示解析並記錄錯題。</p><p>通關可獲得金幣、經驗與星星，並解鎖下一單元。失敗不會扣除已有的金幣，角色下次出發會恢復生命。</p><p>拖曳場景可旋轉視角，滾輪或雙指可縮放。進度會自動存在此瀏覽器；清除網站資料會刪除進度。</p><p>商店、佈置、換裝與其他功能將依開發階段陸續加入。</p><button className="primary" onClick={() => setHelp(false)}>準備好了<Check size={17} /></button></Dialog>}
+    {leave && <Dialog title="要先回地圖休息嗎？" onClose={() => setLeave(false)}><p>這場挑戰尚未結算的金幣不會發放，已答題的經驗與錯題紀錄會保留。</p><button className="primary" onClick={() => { setLeave(false); game.navigate('map'); }}>回到地圖<RotateCcw size={17} /></button><button className="text-button" onClick={() => setLeave(false)}>繼續挑戰</button></Dialog>}
+  </div>;
+}
+function Stat({ icon, label, value, suffix, note }: { icon: ReactNode; label: string; value: string; suffix: string; note: string }) { return <section className="stat-card"><span className="stat-icon">{icon}</span><div><span>{label}</span><p><b>{value}</b><small>{suffix}</small></p><span className="stat-note">{note}</span></div></section>; }
+function Dialog({ title, children, onClose }: { title: string; children: ReactNode; onClose(): void }) {
+  const ref = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const previous = document.activeElement as HTMLElement | null;
+    ref.current?.querySelector<HTMLButtonElement>('button')?.focus();
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = overflow; previous?.focus(); };
+  }, []);
+  return <div className="modal-backdrop" onClick={onClose}><section ref={ref} className="dialog" role="dialog" aria-modal="true" aria-label={title} onClick={e => e.stopPropagation()} onKeyDown={e => {
+    if (e.key === 'Escape') onClose();
+    if (e.key === 'Tab') {
+      const buttons = ref.current?.querySelectorAll<HTMLButtonElement>('button:not(:disabled)');
+      if (!buttons?.length) return;
+      const first = buttons[0]; const last = buttons[buttons.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    }
+  }}><button className="close-dialog" aria-label="關閉" onClick={onClose}><X size={20} /></button><span className="small-icon"><Leaf size={24} /></span><h2>{title}</h2>{children}</section></div>;
+}
