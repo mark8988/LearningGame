@@ -3,7 +3,7 @@ import { Canvas, useFrame, type ThreeElements } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
 import type { PlayerSave } from '../logic/save';
-import type { Unit } from '../data/schemas';
+import type { CosmeticItem, Unit } from '../data/schemas';
 import { isUnlocked } from '../logic/battle';
 
 function Box({ color, ...props }: ThreeElements['mesh'] & { color: string }) {
@@ -58,10 +58,29 @@ function Room({ player }: { player: PlayerSave }) {
     {Array.from({ length: 9 }, (_, i) => <Sphere key={i} color={i % 2 ? '#dfca88' : '#84965e'} position={[3.7 + Math.sin(i * 5) * 0.5, -0.04, -0.8 + i * 0.27]} scale={[0.14, 0.15, 0.14]} />)}
   </group>;
 }
-function Arena({ unit, hit, celebrating }: { unit?: Unit; hit: boolean; celebrating: boolean }) {
+function ProductModel({ item }: { item: CosmeticItem | 'potion' }) {
+  if (item === 'potion') return <group><mesh castShadow position={[0, 0.75, 0]}><cylinderGeometry args={[0.38, 0.48, 0.95, 8]} /><meshStandardMaterial color="#b0c5a1" /></mesh><Box color="#99b38e" scale={[0.45, 0.35, 0.45]} position={[0, 1.32, 0]} /><Box color="#b38b59" scale={[0.48, 0.16, 0.48]} position={[0, 1.53, 0]} /><Box color="#f5e6c3" scale={[0.3, 0.12, 0.06]} position={[0, 0.8, 0.47]} /><Box color="#f5e6c3" scale={[0.12, 0.34, 0.06]} position={[0, 0.8, 0.47]} /></group>;
+  if (item.kind === 'furniture') {
+    if (item.id === 'bookshelf') return <group><Box color="#ac8158" scale={[1.5, 1.9, 0.5]} position={[0, 0.95, 0]} />{[0.4, 1.05, 1.7].map(y => <group key={y}><Box color="#745c45" scale={[1.25, 0.45, 0.07]} position={[0, y, 0.28]} />{['#8da48e', '#cbb577', '#bd9174'].map((c, i) => <Box key={c} color={c} scale={[0.24, 0.42, 0.2]} position={[-0.4 + i * 0.35, y, 0.37]} />)}</group>)}</group>;
+    if (item.id === 'telescope') return <group><Box color="#b8a27a" scale={[0.14, 1.1, 0.14]} position={[0, 0.6, 0]} /><Box color="#aa916f" scale={[1.2, 0.12, 0.12]} position={[0, 0.15, 0]} /><mesh castShadow position={[0, 1.35, 0]} rotation={[0.4, 0, Math.PI / 2.7]}><cylinderGeometry args={[0.25, 0.2, 1.5, 10]} /><meshStandardMaterial color="#709086" /></mesh></group>;
+    if (item.id === 'rainbow-window') return <group><Box color="#b49062" scale={[1.8, 1.8, 0.18]} position={[0, 1, 0]} /><Box color="#a7c8c0" scale={[1.5, 1.5, 0.2]} position={[0, 1, 0.03]} />{['#c89a86', '#d9c281', '#93aa83', '#8baaba', '#a49aba'].map((color, i) => <mesh key={color} position={[0, 0.85, 0.2 + i * 0.01]}><torusGeometry args={[0.6 - i * 0.09, 0.04, 5, 20, Math.PI]} /><meshStandardMaterial color={color} /></mesh>)}</group>;
+    if (item.id === 'crystal-fountain') return <group><mesh castShadow position={[0, 0.3, 0]}><cylinderGeometry args={[0.9, 0.75, 0.5, 8]} /><meshStandardMaterial color="#9cb8b4" /></mesh><mesh castShadow position={[0, 1, 0]}><octahedronGeometry args={[0.65, 0]} /><meshStandardMaterial color="#a1d2d2" metalness={0.2} roughness={0.2} /></mesh></group>;
+    return <Furniture kind={item.id} x={0} z={0} />;
+  }
+  if (item.outfitSlot === 'hat') return <group><mesh castShadow position={[0, 0.9, 0]}><cylinderGeometry args={[0.55, 0.65, 0.6, 8]} /><meshStandardMaterial color={item.rarity === 'epic' ? '#a8b67b' : '#82966f'} /></mesh><mesh castShadow position={[0, 0.6, 0]}><cylinderGeometry args={[0.85, 0.85, 0.09, 8]} /><meshStandardMaterial color="#c6b079" /></mesh>{item.rarity === 'epic' && <Sphere color="#d7c77b" position={[0, 1.45, 0]} scale={[0.2, 0.4, 0.2]} />}</group>;
+  if (item.outfitSlot === 'top') return <group><Box color="#799478" position={[0, 0.9, 0]} scale={[1, 1.2, 0.5]} /><Box color="#799478" position={[-0.7, 1.1, 0]} rotation={[0, 0, -0.5]} scale={[0.45, 0.85, 0.45]} /><Box color="#799478" position={[0.7, 1.1, 0]} rotation={[0, 0, 0.5]} scale={[0.45, 0.85, 0.45]} /><Box color="#d9c99a" position={[0, 0.9, 0.27]} scale={[0.07, 1.15, 0.03]} /></group>;
+  if (item.outfitSlot === 'handheld') return <group><Box color="#7d8d6a" position={[0, 0.2, 0]} scale={[0.8, 0.2, 0.8]} /><Box color="#e9d59a" position={[0, 0.75, 0]} scale={[0.6, 0.85, 0.6]} /><Box color="#7d8d6a" position={[0, 1.23, 0]} scale={[0.8, 0.15, 0.8]} /><mesh position={[0, 1.5, 0]}><torusGeometry args={[0.25, 0.05, 6, 12]} /><meshStandardMaterial color="#7d8d6a" /></mesh></group>;
+  return <group><Box color="#8ca17d" position={[0, 1.1, 0]} scale={[1.3, 0.3, 0.6]} /><Box color="#8ca17d" position={[0.3, 0.65, 0.22]} scale={[0.32, 0.8, 0.18]} /><Sphere color="#c6b778" position={[0.3, 0.25, 0.22]} scale={0.2} /></group>;
+}
+function TreasureChest({ open }: { open: boolean }) {
+  const lid = useRef<THREE.Group>(null);
+  useFrame((_, delta) => { if (lid.current) lid.current.rotation.x = THREE.MathUtils.damp(lid.current.rotation.x, open ? -1.6 : 0, 5, delta); });
+  return <group position={[1.5, 0.3, 0.7]} rotation={[0, -0.3, 0]}><Box color="#a77c4d" position={[0, 0.4, 0]} scale={[1.7, 0.8, 1.2]} /><Box color="#d9ba70" position={[-0.55, 0.4, 0.01]} scale={[0.13, 0.82, 1.24]} /><Box color="#d9ba70" position={[0.55, 0.4, 0.01]} scale={[0.13, 0.82, 1.24]} /><group ref={lid} position={[0, 0.8, -0.6]}><Box color="#b48b58" position={[0, 0.15, 0.6]} scale={[1.72, 0.3, 1.22]} /><Box color="#e7c880" position={[0, 0.05, 1.23]} scale={[0.25, 0.4, 0.08]} /></group>{open && <><pointLight position={[0, 1.3, 0]} color="#f5d47a" intensity={5} distance={5} />{[-0.5, 0, 0.5].map((x, i) => <Sphere key={x} color="#f3d48b" position={[x, 1.4 + i * 0.3, 0]} scale={0.1} />)}</>}</group>;
+}
+function Arena({ unit, hit, result, won, chestOpen }: { unit?: Unit; hit: boolean; result: boolean; won: boolean; chestOpen: boolean }) {
   return <group><mesh position={[0, -0.2, 0]} receiveShadow><cylinderGeometry args={[5.2, 4.7, 0.6, 12]} /><meshStandardMaterial color="#a9b087" flatShading /></mesh><mesh position={[0, 0.11, 0]} receiveShadow><cylinderGeometry args={[3.8, 3.8, 0.02, 32]} /><meshStandardMaterial color="#d3c29c" /></mesh>
     {[[-4, 0, -2], [-2.4, 0, -3.6], [0, 0, -4.2], [3.1, 0, -3], [4.6, 0, 1]].map((p, i) => <Tree key={i} position={p as [number, number, number]} scale={0.9 + i % 2 * 0.35} />)}
-    <group rotation={[0, 0.55, 0]}><Avatar position={[-2, 0.14, 0.8]} celebrating={celebrating} /></group>{!celebrating && <Boss theme={unit?.boss.asset.split(':')[1]} hit={hit} />}
+    <group rotation={[0, 0.55, 0]}><Avatar position={[-2, 0.14, 0.8]} celebrating={result && won} /></group>{!result && <Boss theme={unit?.boss.asset.split(':')[1]} hit={hit} />}{result && won && <TreasureChest open={chestOpen} />}
     <Sphere color="#8e9e7b" position={[-3.9, 0.3, 1.8]} scale={[0.6, 0.4, 0.6]} /><Sphere color="#8e9e7b" position={[3.9, 0.3, 1.8]} scale={[0.5, 0.4, 0.5]} />
   </group>;
 }
@@ -77,11 +96,11 @@ class SceneBoundary extends Component<{ children: ReactNode }, { failed: boolean
   static getDerivedStateFromError() { return { failed: true }; }
   render() { return this.state.failed ? <div className="scene-error" role="alert">3D 場景無法啟動。請開啟瀏覽器硬體加速，或使用支援 WebGL 的瀏覽器。</div> : this.props.children; }
 }
-export function World3D({ mode, player, units, unit, hit = false, onSelect }: { mode: 'home' | 'map' | 'battle' | 'result'; player: PlayerSave; units: Unit[]; unit?: Unit; hit?: boolean; onSelect?: (id: string) => void }) {
-  return <SceneBoundary><Canvas key={mode} shadows dpr={[1, 1.5]} camera={{ position: mode === 'home' ? [9, 8, 11] : mode === 'map' ? [6, 9, 13] : [7, 5.5, 11], fov: mode === 'map' ? 43 : 40 }} gl={{ antialias: true, powerPreference: 'high-performance' }} fallback={<div className="scene-error">需要支援 WebGL 的瀏覽器才能呈現 3D 世界。</div>} aria-label={mode === 'home' ? '可旋轉的 3D 森林小屋與探險角色' : mode === 'map' ? '3D 冒險浮島地圖' : '3D 森林戰鬥場景'}>
+export function World3D({ mode, player, units, unit, hit = false, onSelect, item, chestOpen = false, won = true }: { mode: 'home' | 'map' | 'battle' | 'result' | 'shop'; player: PlayerSave; units: Unit[]; unit?: Unit; hit?: boolean; onSelect?: (id: string) => void; item?: CosmeticItem | 'potion'; chestOpen?: boolean; won?: boolean }) {
+  return <SceneBoundary><Canvas key={mode} shadows dpr={[1, 1.5]} camera={{ position: mode === 'home' ? [9, 8, 11] : mode === 'map' ? [6, 9, 13] : mode === 'shop' ? [4, 3, 5] : [7, 5.5, 11], fov: mode === 'map' ? 43 : 40 }} gl={{ antialias: true, powerPreference: 'high-performance' }} fallback={<div className="scene-error">需要支援 WebGL 的瀏覽器才能呈現 3D 世界。</div>} aria-label={mode === 'home' ? '可旋轉的 3D 森林小屋與探險角色' : mode === 'map' ? '3D 冒險浮島地圖' : mode === 'shop' ? '商品 3D 預覽' : '3D 森林戰鬥場景'}>
     <color attach="background" args={[mode === 'home' ? '#e6eadc' : '#dce5d6']} /><fog attach="fog" args={['#dce5d6', 22, 48]} />
     <ambientLight intensity={1.6} /><hemisphereLight args={['#fff7e1', '#788466', 1.5]} /><directionalLight position={[5, 10, 6]} intensity={2.3} castShadow shadow-mapSize={[1024, 1024]} shadow-camera-left={-10} shadow-camera-right={10} shadow-camera-top={10} shadow-camera-bottom={-10} shadow-normalBias={0.04} />
-    {mode === 'home' ? <Room player={player} /> : mode === 'map' ? <Islands units={units} player={player} onSelect={onSelect} /> : <Arena unit={unit} hit={hit} celebrating={mode === 'result'} />}
-    <OrbitControls makeDefault enablePan={false} enableZoom minDistance={8} maxDistance={22} maxPolarAngle={Math.PI / 2.15} minPolarAngle={0.25} target={[0, mode === 'map' ? 0 : 0.6, 0]} />
+    {mode === 'home' ? <Room player={player} /> : mode === 'map' ? <Islands units={units} player={player} onSelect={onSelect} /> : mode === 'shop' ? <><mesh receiveShadow position={[0, -0.12, 0]}><cylinderGeometry args={[2.2, 2, 0.25, 12]} /><meshStandardMaterial color="#bac7a4" /></mesh>{item && <ProductModel item={item} />}</> : <Arena unit={unit} hit={hit} result={mode === 'result'} won={won} chestOpen={chestOpen} />}
+    <OrbitControls makeDefault enablePan={false} enableZoom minDistance={mode === 'shop' ? 4 : 8} maxDistance={22} maxPolarAngle={Math.PI / 2.15} minPolarAngle={0.25} target={[0, mode === 'map' ? 0 : 0.6, 0]} />
   </Canvas></SceneBoundary>;
 }

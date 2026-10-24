@@ -1,0 +1,102 @@
+[
+  {
+    "id": "drops-u1",
+    "common": [
+      "bed",
+      "desk",
+      "chair",
+      "rug",
+      "explorer-hat",
+      "leaf-scarf"
+    ],
+    "rare": [
+      "ranger-top",
+      "lantern",
+      "bookshelf",
+      "telescope"
+    ],
+    "epic": [
+      "leaf-crown"
+    ]
+  },
+  {
+    "id": "drops-u2",
+    "common": [
+      "bed",
+      "desk",
+      "chair",
+      "rug",
+      "explorer-hat",
+      "leaf-scarf"
+    ],
+    "rare": [
+      "ranger-top",
+      "lantern",
+      "bookshelf",
+      "telescope"
+    ],
+    "epic": [
+      "feather-cap"
+    ]
+  },
+  {
+    "id": "drops-u3",
+    "common": [
+      "bed",
+      "desk",
+      "chair",
+      "rug",
+      "explorer-hat",
+      "leaf-scarf"
+    ],
+    "rare": [
+      "ranger-top",
+      "lantern",
+      "bookshelf",
+      "telescope"
+    ],
+    "epic": [
+      "rainbow-window"
+    ]
+  },
+  {
+    "id": "drops-u4",
+    "common": [
+      "bed",
+      "desk",
+      "chair",
+      "rug",
+      "explorer-hat",
+      "leaf-scarf"
+    ],
+    "rare": [
+      "ranger-top",
+      "lantern",
+      "bookshelf",
+      "telescope"
+    ],
+    "epic": [
+      "magnet-hat"
+    ]
+  },
+  {
+    "id": "drops-u5",
+    "common": [
+      "bed",
+      "desk",
+      "chair",
+      "rug",
+      "explorer-hat",
+      "leaf-scarf"
+    ],
+    "rare": [
+      "ranger-top",
+      "lantern",
+      "bookshelf",
+      "telescope"
+    ],
+    "epic": [
+      "crystal-fountain"
+    ]
+  }
+]

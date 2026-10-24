@@ -3,7 +3,7 @@ import type { ContentPack } from '../data/schemas';
 const nonnegative = z.number().int().nonnegative();
 const outfitSlot = z.enum(['hair', 'top', 'bottom', 'shoes', 'hat', 'accessory', 'handheld']);
 export const saveSchema = z.object({
-  saveVersion: z.literal(1), contentPackId: z.string(), coins: nonnegative, xp: nonnegative,
+  saveVersion: z.literal(1), contentPackId: z.string(), coins: nonnegative, xp: nonnegative, potions: nonnegative.max(99).default(0),
   ownedItemIds: z.array(z.string()), inventory: z.record(z.string(), nonnegative), equippedOutfit: z.partialRecord(outfitSlot, z.string()),
   roomLayout: z.array(z.object({ itemId: z.string(), x: nonnegative, y: nonnegative, rotation: z.union([z.literal(0), z.literal(1)]) })),
   clearedUnitIds: z.array(z.string()), unitStars: z.record(z.string(), z.number().int().min(1).max(3)), readEncyclopediaIds: z.array(z.string()), wrongQuestionIds: z.array(z.string()), unlockedAchievementIds: z.array(z.string()),
@@ -12,7 +12,7 @@ export const saveSchema = z.object({
 export type PlayerSave = z.infer<typeof saveSchema>;
 export function newGame(pack: ContentPack): PlayerSave {
   const starter = pack.items.filter(i => i.obtainFrom.includes('starter'));
-  return { saveVersion: 1, contentPackId: pack.manifest.id, coins: 0, xp: 0, ownedItemIds: starter.map(i => i.id), inventory: Object.fromEntries(starter.map(i => [i.id, 1])), equippedOutfit: {}, roomLayout: [], clearedUnitIds: [], unitStars: {}, readEncyclopediaIds: [], wrongQuestionIds: [], unlockedAchievementIds: [], stats: { battlesWon: 0, questionsAnswered: 0, correct: 0 }, updatedAt: new Date().toISOString() };
+  return { saveVersion: 1, contentPackId: pack.manifest.id, coins: 0, xp: 0, potions: 0, ownedItemIds: starter.map(i => i.id), inventory: Object.fromEntries(starter.map(i => [i.id, 1])), equippedOutfit: {}, roomLayout: [], clearedUnitIds: [], unitStars: {}, readEncyclopediaIds: [], wrongQuestionIds: [], unlockedAchievementIds: [], stats: { battlesWon: 0, questionsAnswered: 0, correct: 0 }, updatedAt: new Date().toISOString() };
 }
 export interface SaveRepository { load(): { save: PlayerSave | null; warning?: string }; save(value: PlayerSave): void }
 export const SAVE_KEY = 'learning-adventure:save:v1';

@@ -33,6 +33,10 @@ test('3D 小屋 → 地圖 → 答錯解析 → 通關 → 重新整理保留進
     expect(rounds).toBeLessThanOrEqual(10);
   }
   await expect(page.getByRole('heading', { name: '挑戰成功！' })).toBeVisible();
+  await page.getByRole('button', { name: /開啟森林寶箱/ }).click();
+  await expect(page.getByLabel('寶箱獎勵')).toBeVisible();
+  expect(await page.locator('.loot-item').count()).toBeGreaterThanOrEqual(1);
+  await page.screenshot({ path: `test-results/loot-${test.info().project.name}.png`, fullPage: true });
   await expect(page.getByTestId('coins')).not.toHaveText('0');
   const coins = await page.getByTestId('coins').innerText();
   await expect(page.getByText('進度已儲存')).toBeVisible();
@@ -45,6 +49,7 @@ test('3D 小屋 → 地圖 → 答錯解析 → 通關 → 重新整理保留進
   expect(saved.wrongQuestionIds).toHaveLength(1);
   expect(saved.clearedUnitIds).toContain('sci-g3-u1');
   expect(saved.unitStars['sci-g3-u1']).toBeGreaterThan(0);
+  expect(Object.values(saved.inventory).reduce((sum: number, value) => sum + Number(value), 0)).toBeGreaterThanOrEqual(4);
   expect(errors).toEqual([]);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
 });

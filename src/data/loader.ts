@@ -1,5 +1,6 @@
 import { z } from 'zod';
-import { manifestSchema, questionSchema, unitSchema, itemSchema, encyclopediaSchema, achievementSchema, type ContentPack } from './schemas';
+import { manifestSchema, questionSchema, unitSchema, itemSchema, dropTableSchema, encyclopediaSchema, achievementSchema, type ContentPack } from './schemas';
+import { gameConfig } from './gameConfig';
 
 export function parseFile<T>(file: string, schema: z.ZodType<T>, input: unknown): T {
   const result = schema.safeParse(input);
@@ -12,19 +13,42 @@ export function validatePack(files: Record<string, unknown>): ContentPack {
     questions: parseFile('questions.json', z.array(questionSchema).min(1), files['questions.json']),
     units: parseFile('units.json', z.array(unitSchema).min(1), files['units.json']),
     items: parseFile('items.json', z.array(itemSchema), files['items.json']),
+    dropTables: parseFile('drops.json', z.array(dropTableSchema), files['drops.json']),
     encyclopedia: parseFile('encyclopedia.json', z.array(encyclopediaSchema), files['encyclopedia.json']),
     achievements: parseFile('achievements.json', z.array(achievementSchema), files['achievements.json']),
   };
-  for (const [file, records] of Object.entries({ 'questions.json': pack.questions, 'units.json': pack.units, 'items.json': pack.items, 'encyclopedia.json': pack.encyclopedia, 'achievements.json': pack.achievements })) {
+  for (const [file, records] of Object.entries({ 'questions.json': pack.questions, 'units.json': pack.units, 'items.json': pack.items, 'drops.json': pack.dropTables, 'encyclopedia.json': pack.encyclopedia, 'achievements.json': pack.achievements })) {
     const seen = new Set<string>();
     records.forEach((record, i) => { if (seen.has(record.id)) throw new Error(`${file}：${i}.id 重複 ${record.id}`); seen.add(record.id); });
   }
   const units = new Set(pack.units.map(u => u.id));
   const questions = new Map(pack.questions.map(q => [q.id, q]));
   const entries = new Map(pack.encyclopedia.map(e => [e.id, e]));
+  const tables = new Set(pack.dropTables.map(t => t.id));
+  const items = new Map(pack.items.map(item => [item.id, item]));
+  pack.items.forEach((item, i) => {
+    if (!item.obtainFrom.includes('shop')) return;
+    const [min, max] = gameConfig.priceBands[item.rarity];
+    if (item.price < min || item.price > max) throw new Error(`items.json：${i}.price 商店售價必須在 ${min}–${max} 之間`);
+  });
+  const epicOwners = new Set<string>();
+  pack.dropTables.forEach((table, i) => {
+    for (const rarity of ['common', 'rare', 'epic'] as const) {
+      if (new Set(table[rarity]).size !== table[rarity].length) throw new Error(`drops.json：${i}.${rarity} 道具重複`);
+      table[rarity].forEach((id, j) => {
+        const item = items.get(id);
+        if (!item || !item.obtainFrom.includes('drop') || item.rarity !== rarity) throw new Error(`drops.json：${i}.${rarity}.${j} 道具不存在、不可掉落或稀有度不符 ${id}`);
+        if (rarity === 'epic') {
+          if (epicOwners.has(id)) throw new Error(`drops.json：${i}.epic.${j} 史詩道具必須為單元限定`);
+          epicOwners.add(id);
+        }
+      });
+    }
+  });
   pack.manifest.unitIds.forEach((id, i) => { if (!units.has(id)) throw new Error(`pack.json：unitIds.${i} 找不到 ${id}`); });
   if (pack.manifest.unitIds.length !== pack.units.length || new Set(pack.manifest.unitIds).size !== pack.units.length) throw new Error('pack.json：unitIds 必須完整且不重複');
   pack.units.forEach((u, i) => {
+    if (!tables.has(u.dropTableId)) throw new Error(`units.json：${i}.dropTableId 找不到掉落表 ${u.dropTableId}`);
     if (new Set(u.questionPool).size !== u.questionPool.length) throw new Error(`units.json：${i}.questionPool 題目重複`);
     u.questionPool.forEach((id, j) => { if (questions.get(id)?.unitId !== u.id) throw new Error(`units.json：${i}.questionPool.${j} 找不到同單元題目 ${id}`); });
     u.encyclopediaIds.forEach((id, j) => { if (entries.get(id)?.unitId !== u.id) throw new Error(`units.json：${i}.encyclopediaIds.${j} 找不到同單元條目 ${id}`); });

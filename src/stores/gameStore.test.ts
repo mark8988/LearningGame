@@ -31,4 +31,26 @@ describe('冒險狀態與結算', () => {
   });
   it('存檔使用 500ms debounce', () => { vi.useFakeTimers(); const game = setup(); const mock = vi.mocked(game.repository.save); mock.mockClear(); game.store.getState().startBattle(pack.units[0].id); const b = game.store.getState().battle!; game.store.getState().answer(b.questions[0].answerIndex); vi.advanceTimersByTime(499); expect(mock).not.toHaveBeenCalled(); vi.advanceTimersByTime(1); expect(mock).toHaveBeenCalledTimes(1); game.dispose(); });
   it('未知版本存檔不得被自動覆寫', () => { const save = vi.fn(); const game = createGameStore(pack, { load: () => ({ save: null, warning: '原始存檔已保留' }), save }); game.store.getState().startBattle(pack.units[0].id); game.store.getState().answer(0); game.flush(); expect(save).not.toHaveBeenCalled(); game.dispose(); });
+  it('購買入庫並存檔，不能從戰鬥狀態購買', () => {
+    const initial = newGame(pack); initial.coins = 150; const game = setup(initial);
+    game.store.getState().buy('explorer-hat'); expect(game.store.getState().player.coins).toBe(150);
+    game.store.getState().navigate('shop'); game.store.getState().buy('explorer-hat'); game.store.getState().buy('explorer-hat');
+    expect(game.store.getState().player.inventory['explorer-hat']).toBe(1); expect(game.store.getState().player.coins).toBe(90); expect(game.store.getState().notice).toContain('已經擁有');
+    game.flush(); expect(game.saved()?.inventory['explorer-hat']).toBe(1); game.dispose();
+  });
+  it('藥水不消耗回合，滿血、答題解析中或戰鬥結束時不能使用', () => {
+    const initial = newGame(pack); initial.potions = 2; const game = setup(initial); game.store.getState().startBattle(pack.units[0].id);
+    game.store.getState().usePotion(); expect(game.store.getState().player.potions).toBe(2);
+    let b = game.store.getState().battle!; game.store.getState().answer((b.questions[0].answerIndex + 1) % 4); game.store.getState().usePotion(); expect(game.store.getState().player.potions).toBe(2);
+    game.store.getState().nextTurn(); const index = game.store.getState().battle!.index; game.store.getState().usePotion();
+    b = game.store.getState().battle!; expect(b.playerHp).toBe(100); expect(b.index).toBe(index); expect(game.store.getState().player.potions).toBe(1);
+    game.store.getState().navigate('home'); game.store.getState().usePotion(); expect(game.store.getState().player.potions).toBe(1); game.dispose();
+  });
+  it('通關立即入庫，離開結算不丟獎勵且不得重複領取', () => {
+    const game = setup(); game.store.getState().startBattle(pack.units[0].id);
+    while (game.store.getState().battle) { const b = game.store.getState().battle!; game.store.getState().answer(b.questions[b.index].answerIndex); game.store.getState().nextTurn(); }
+    const result = game.store.getState().result!; expect(result.drops).toHaveLength(1); const id = result.drops[0].itemId;
+    expect(game.store.getState().player.inventory[id]).toBe(2); game.store.getState().nextTurn(); expect(game.store.getState().player.inventory[id]).toBe(2);
+    game.store.getState().navigate('home'); game.flush(); expect(game.saved()?.inventory[id]).toBe(2); game.dispose();
+  });
 });

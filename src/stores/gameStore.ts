@@ -3,11 +3,13 @@ import { loadBuiltinPack } from '../data/loader';
 import type { ContentPack, Question, Unit } from '../data/schemas';
 import { counterDamage, hitDamage, isUnlocked, levelFromXp, maxHp, selectQuestions, starCount, victoryCoins } from '../logic/battle';
 import { LocalSaveRepository, newGame, type PlayerSave, type SaveRepository } from '../logic/save';
+import { awardDrops, rollDrops, type DropReceipt } from '../logic/drops';
+import { healWithPotion, purchase } from '../logic/shop';
 
-export type Screen = 'home' | 'map' | 'battle' | 'result';
+export type Screen = 'home' | 'map' | 'battle' | 'result' | 'shop';
 export interface Battle { unit: Unit; questions: Question[]; index: number; playerHp: number; playerMaxHp: number; bossHp: number; level: number; correct: number; feedback: { choice: number; correct: boolean; damage: number; critical: boolean } | null; outcome: 'won' | 'lost' | null }
-export interface BattleResult { won: boolean; coins: number; xp: number; correct: number; answered: number; stars: number; firstClear: boolean; unitName: string }
-interface GameState { pack: ContentPack; player: PlayerSave; screen: Screen; battle: Battle | null; result: BattleResult | null; warning: string | null; saveStatus: 'saved' | 'pending' | 'error'; navigate(screen: 'home' | 'map'): void; startBattle(unitId: string): void; answer(choice: number): void; nextTurn(): void; dismissWarning(): void }
+export interface BattleResult { won: boolean; coins: number; dropCoins: number; drops: DropReceipt[]; xp: number; correct: number; answered: number; stars: number; firstClear: boolean; unitName: string }
+interface GameState { pack: ContentPack; player: PlayerSave; screen: Screen; battle: Battle | null; result: BattleResult | null; warning: string | null; notice: string | null; saveStatus: 'saved' | 'pending' | 'error'; navigate(screen: 'home' | 'map' | 'shop'): void; startBattle(unitId: string): void; answer(choice: number): void; nextTurn(): void; buy(productId: string): void; usePotion(): void; dismissWarning(): void }
 
 export function createGameStore(pack: ContentPack, repository: SaveRepository, random: () => number = Math.random) {
   const loaded = repository.load();
@@ -16,15 +18,27 @@ export function createGameStore(pack: ContentPack, repository: SaveRepository, r
   let writesEnabled = !wrongPack && !loaded.warning?.includes('原始存檔');
   let timer: ReturnType<typeof setTimeout> | undefined;
   const store = create<GameState>((set, get) => ({
-    pack, player: initial, screen: 'home', battle: null, result: null, warning: wrongPack ? '存檔屬於其他內容包，原始存檔已保留。' : loaded.warning ?? null, saveStatus: writesEnabled ? 'saved' : 'error',
-    navigate: screen => set({ screen, battle: null, result: null }),
+    pack, player: initial, screen: 'home', battle: null, result: null, notice: null, warning: wrongPack ? '存檔屬於其他內容包，原始存檔已保留。' : loaded.warning ?? null, saveStatus: writesEnabled ? 'saved' : 'error',
+    navigate: screen => set({ screen, battle: null, result: null, notice: null }),
     dismissWarning: () => set({ warning: null }),
+    buy: productId => {
+      if (get().screen !== 'shop') return;
+      const result = purchase(get().player, productId, pack);
+      set(result.ok ? { player: { ...result.player, updatedAt: new Date().toISOString() }, notice: result.message } : { notice: result.message });
+    },
+    usePotion: () => {
+      const { battle, player } = get();
+      if (!battle || battle.outcome || battle.feedback) return;
+      const healed = healWithPotion(battle.playerHp, battle.playerMaxHp, player.potions);
+      if (!healed) { set({ notice: player.potions <= 0 ? '背包沒有藥水，出發前可以到商店補充。' : '生命已滿，先留著藥水吧！' }); return; }
+      set({ battle: { ...battle, playerHp: healed.hp }, player: { ...player, potions: healed.potions, updatedAt: new Date().toISOString() }, notice: `恢復 ${healed.healed} HP，繼續探索吧！` });
+    },
     startBattle: unitId => {
       const player = get().player;
       const unit = pack.units.find(u => u.id === unitId);
       if (!unit || !isUnlocked(unit, player.clearedUnitIds)) return;
       const level = levelFromXp(player.xp);
-      set({ screen: 'battle', result: null, battle: { unit, questions: selectQuestions(pack.questions.filter(q => unit.questionPool.includes(q.id)), player.wrongQuestionIds, random), index: 0, playerHp: maxHp(level), playerMaxHp: maxHp(level), bossHp: unit.boss.hp, level, correct: 0, feedback: null, outcome: null } });
+      set({ screen: 'battle', result: null, notice: null, battle: { unit, questions: selectQuestions(pack.questions.filter(q => unit.questionPool.includes(q.id)), player.wrongQuestionIds, random), index: 0, playerHp: maxHp(level), playerMaxHp: maxHp(level), bossHp: unit.boss.hp, level, correct: 0, feedback: null, outcome: null } });
     },
     answer: choice => {
       const { battle, player } = get();
@@ -35,7 +49,7 @@ export function createGameStore(pack: ContentPack, repository: SaveRepository, r
       const bossHp = correct ? Math.max(0, battle.bossHp - hit.damage) : battle.bossHp;
       const playerHp = correct ? battle.playerHp : Math.max(0, battle.playerHp - hit.damage);
       const outcome = bossHp === 0 ? 'won' : playerHp === 0 || battle.index + 1 === battle.questions.length ? 'lost' : null;
-      set({ battle: { ...battle, bossHp, playerHp, correct: battle.correct + Number(correct), feedback: { choice, correct, ...hit }, outcome }, player: { ...player, xp: player.xp + (correct ? 10 : 0), wrongQuestionIds: correct ? player.wrongQuestionIds : [...new Set([...player.wrongQuestionIds, question.id])], stats: { ...player.stats, questionsAnswered: player.stats.questionsAnswered + 1, correct: player.stats.correct + Number(correct) }, updatedAt: new Date().toISOString() } });
+      set({ notice: null, battle: { ...battle, bossHp, playerHp, correct: battle.correct + Number(correct), feedback: { choice, correct, ...hit }, outcome }, player: { ...player, xp: player.xp + (correct ? 10 : 0), wrongQuestionIds: correct ? player.wrongQuestionIds : [...new Set([...player.wrongQuestionIds, question.id])], stats: { ...player.stats, questionsAnswered: player.stats.questionsAnswered + 1, correct: player.stats.correct + Number(correct) }, updatedAt: new Date().toISOString() } });
     },
     nextTurn: () => {
       const { battle, player } = get();
@@ -46,7 +60,9 @@ export function createGameStore(pack: ContentPack, repository: SaveRepository, r
       const answered = battle.index + 1;
       const coins = won ? victoryCoins(battle.correct, answered, firstClear) : 0;
       const stars = won ? starCount(battle.correct, answered) : 0;
-      set({ screen: 'result', battle: null, result: { won, coins, xp: battle.correct * 10 + (won ? 50 : 0), correct: battle.correct, answered, stars, firstClear: won && firstClear, unitName: battle.unit.name }, player: { ...player, coins: player.coins + coins, xp: player.xp + (won ? 50 : 0), clearedUnitIds: won ? [...new Set([...player.clearedUnitIds, battle.unit.id])] : player.clearedUnitIds, unitStars: won ? { ...player.unitStars, [battle.unit.id]: Math.max(player.unitStars[battle.unit.id] ?? 0, stars) } : player.unitStars, stats: { ...player.stats, battlesWon: player.stats.battlesWon + Number(won) }, updatedAt: new Date().toISOString() } });
+      const table = pack.dropTables.find(t => t.id === battle.unit.dropTableId)!;
+      const awarded = awardDrops(player, won ? rollDrops(table, random) : [], pack);
+      set({ screen: 'result', battle: null, notice: null, result: { won, coins: coins + awarded.bonusCoins, dropCoins: awarded.bonusCoins, drops: awarded.receipts, xp: battle.correct * 10 + (won ? 50 : 0), correct: battle.correct, answered, stars, firstClear: won && firstClear, unitName: battle.unit.name }, player: { ...awarded.player, coins: awarded.player.coins + coins, xp: player.xp + (won ? 50 : 0), clearedUnitIds: won ? [...new Set([...player.clearedUnitIds, battle.unit.id])] : player.clearedUnitIds, unitStars: won ? { ...player.unitStars, [battle.unit.id]: Math.max(player.unitStars[battle.unit.id] ?? 0, stars) } : player.unitStars, stats: { ...player.stats, battlesWon: player.stats.battlesWon + Number(won) }, updatedAt: new Date().toISOString() } });
     },
   }));
   const flush = () => {

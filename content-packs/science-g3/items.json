@@ -8,7 +8,8 @@
     "asset": "procedural:bed",
     "obtainFrom": [
       "starter",
-      "shop"
+      "shop",
+      "drop"
     ],
     "gridW": 3,
     "gridH": 2,
@@ -23,7 +24,8 @@
     "asset": "procedural:desk",
     "obtainFrom": [
       "starter",
-      "shop"
+      "shop",
+      "drop"
     ],
     "gridW": 2,
     "gridH": 1,
@@ -38,7 +40,8 @@
     "asset": "procedural:chair",
     "obtainFrom": [
       "starter",
-      "shop"
+      "shop",
+      "drop"
     ],
     "gridW": 1,
     "gridH": 1,
@@ -53,10 +56,157 @@
     "asset": "procedural:rug",
     "obtainFrom": [
       "starter",
-      "shop"
+      "shop",
+      "drop"
     ],
     "gridW": 3,
     "gridH": 2,
     "layer": 0
+  },
+  {
+    "id": "explorer-hat",
+    "name": "探險小帽",
+    "kind": "outfit",
+    "rarity": "common",
+    "price": 60,
+    "asset": "procedural:explorer-hat",
+    "obtainFrom": [
+      "shop",
+      "drop"
+    ],
+    "outfitSlot": "hat"
+  },
+  {
+    "id": "leaf-scarf",
+    "name": "葉子圍巾",
+    "kind": "outfit",
+    "rarity": "common",
+    "price": 80,
+    "asset": "procedural:leaf-scarf",
+    "obtainFrom": [
+      "shop",
+      "drop"
+    ],
+    "outfitSlot": "accessory"
+  },
+  {
+    "id": "ranger-top",
+    "name": "森林探險外套",
+    "kind": "outfit",
+    "rarity": "rare",
+    "price": 150,
+    "asset": "procedural:ranger-top",
+    "obtainFrom": [
+      "shop",
+      "drop"
+    ],
+    "outfitSlot": "top"
+  },
+  {
+    "id": "lantern",
+    "name": "星光小提燈",
+    "kind": "outfit",
+    "rarity": "rare",
+    "price": 180,
+    "asset": "procedural:lantern",
+    "obtainFrom": [
+      "shop",
+      "drop"
+    ],
+    "outfitSlot": "handheld"
+  },
+  {
+    "id": "bookshelf",
+    "name": "自然觀察書櫃",
+    "kind": "furniture",
+    "rarity": "rare",
+    "price": 140,
+    "asset": "procedural:bookshelf",
+    "obtainFrom": [
+      "shop",
+      "drop"
+    ],
+    "gridW": 2,
+    "gridH": 1,
+    "layer": 1
+  },
+  {
+    "id": "telescope",
+    "name": "觀星望遠鏡",
+    "kind": "furniture",
+    "rarity": "rare",
+    "price": 200,
+    "asset": "procedural:telescope",
+    "obtainFrom": [
+      "shop",
+      "drop"
+    ],
+    "gridW": 2,
+    "gridH": 2,
+    "layer": 1
+  },
+  {
+    "id": "leaf-crown",
+    "name": "樹靈葉冠",
+    "kind": "outfit",
+    "rarity": "epic",
+    "price": 0,
+    "asset": "procedural:leaf-crown",
+    "obtainFrom": [
+      "drop"
+    ],
+    "outfitSlot": "hat"
+  },
+  {
+    "id": "feather-cap",
+    "name": "雲羽禮帽",
+    "kind": "outfit",
+    "rarity": "epic",
+    "price": 0,
+    "asset": "procedural:feather-cap",
+    "obtainFrom": [
+      "drop"
+    ],
+    "outfitSlot": "hat"
+  },
+  {
+    "id": "rainbow-window",
+    "name": "彩虹窗簾",
+    "kind": "furniture",
+    "rarity": "epic",
+    "price": 0,
+    "asset": "procedural:rainbow-window",
+    "obtainFrom": [
+      "drop"
+    ],
+    "gridW": 2,
+    "gridH": 1,
+    "layer": 1
+  },
+  {
+    "id": "magnet-hat",
+    "name": "磁鐵造型帽",
+    "kind": "outfit",
+    "rarity": "epic",
+    "price": 0,
+    "asset": "procedural:magnet-hat",
+    "obtainFrom": [
+      "drop"
+    ],
+    "outfitSlot": "hat"
+  },
+  {
+    "id": "crystal-fountain",
+    "name": "冰晶小噴泉",
+    "kind": "furniture",
+    "rarity": "epic",
+    "price": 0,
+    "asset": "procedural:crystal-fountain",
+    "obtainFrom": [
+      "drop"
+    ],
+    "gridW": 2,
+    "gridH": 2,
+    "layer": 1
   }
 ]
