@@ -1,10 +1,11 @@
-import { Component, useRef, type ReactNode } from 'react';
+import { Component, useLayoutEffect, useRef, type ReactNode } from 'react';
 import { Canvas, useFrame, type ThreeElements } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
 import type { PlayerSave } from '../logic/save';
 import type { CosmeticItem, Unit } from '../data/schemas';
 import { isUnlocked } from '../logic/battle';
+import { footprint, ROOM_GRID, type PlacedFurniture } from '../logic/placement';
 
 function Box({ color, ...props }: ThreeElements['mesh'] & { color: string }) {
   return <mesh castShadow receiveShadow {...props}><boxGeometry /><meshStandardMaterial color={color} roughness={0.85} /></mesh>;
@@ -44,7 +45,7 @@ function Furniture({ kind, x, z }: { kind: string; x: number; z: number }) {
     {kind === 'bed' ? <><Box color="#99704d" scale={[1.5, 0.3, 2.2]} position={[0, 0.2, 0]} /><Box color="#7e9a87" scale={[1.4, 0.25, 1.8]} position={[0, 0.46, 0.1]} /><Box color="#faf2d9" scale={[1.15, 0.2, 0.45]} position={[0, 0.6, -0.65]} /><Box color="#99704d" scale={[1.6, 0.9, 0.12]} position={[0, 0.45, -1.08]} /></> : kind === 'rug' ? <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, 0]} receiveShadow><circleGeometry args={[1.4, 8]} /><meshStandardMaterial color="#d4ad67" /></mesh> : <><Box color="#af865b" scale={[kind === 'desk' ? 1.5 : 0.6, 0.14, kind === 'desk' ? 0.8 : 0.6]} position={[0, 0.8, 0]} />{[-1, 1].flatMap(a => [-1, 1].map(b => <Box key={`${a}${b}`} color="#967049" scale={[0.1, 0.8, 0.1]} position={[a * (kind === 'desk' ? 0.6 : 0.23), 0.4, b * 0.24]} />))}{kind === 'chair' && <Box color="#af865b" scale={[0.6, 0.6, 0.12]} position={[0, 1.05, -0.24]} />}</>}
   </group>;
 }
-function Room({ player }: { player: PlayerSave }) {
+export function Room({ player, items, hideIndex }: { player: PlayerSave; items: CosmeticItem[]; hideIndex?: number }) {
   return <group>
     <Box color="#94a17a" scale={[11, 0.5, 9]} position={[0, -0.45, 0]} /><Box color="#c7a67d" scale={[7.3, 0.25, 5.9]} position={[0, -0.08, 0]} />
     {Array.from({ length: 13 }, (_, i) => <Box key={i} color={i % 2 ? '#dfc39e' : '#e6cda9'} position={[-3.3 + i * 0.55, 0.065, 0]} scale={[0.52, 0.045, 5.7]} />)}
@@ -53,10 +54,28 @@ function Room({ player }: { player: PlayerSave }) {
     <Box color="#9c7550" position={[1.5, 1.9, -2.65]} scale={[1.8, 0.12, 0.4]} />
     {['#8eac9c', '#d6b170', '#b67e65', '#7e958b', '#cbba86'].map((color, i) => <Box key={color} color={color} position={[0.85 + i * 0.24, 2.16, -2.7]} scale={[0.16, 0.4 + i % 2 * 0.1, 0.2]} rotation={[0, 0, i === 4 ? -0.15 : 0]} />)}
     <Box color="#98704b" position={[-3.35, 3.25, 0]} scale={[0.28, 0.22, 6]} /><Box color="#98704b" position={[0, 3.25, -2.85]} scale={[7.3, 0.22, 0.28]} />
-    {player.roomLayout.map((f, i) => <Furniture key={`${f.itemId}-${i}`} kind={f.itemId} x={f.x * 0.5 - 2.8} z={f.y * 0.55 - 1.7} />)}
-    <Avatar position={[0, 0.1, 0.4]} /><Tree position={[4.2, -0.2, -2.5]} scale={1.3} /><Tree position={[-4.5, -0.2, 2.5]} scale={0.9} /><Tree position={[3.8, -0.2, 3.1]} scale={0.7} />
+    {player.roomLayout.map((f, i) => { const item = items.find(item => item.id === f.itemId); return item && i !== hideIndex ? <PlacedItem3D key={`${f.itemId}-${i}`} item={item} placement={f} /> : null; })}
+    <Avatar position={[0, 0.1, 2.5]} /><Tree position={[4.2, -0.2, -2.5]} scale={1.3} /><Tree position={[-4.5, -0.2, 2.5]} scale={0.9} /><Tree position={[3.8, -0.2, 3.1]} scale={0.7} />
     {Array.from({ length: 9 }, (_, i) => <Sphere key={i} color={i % 2 ? '#dfca88' : '#84965e'} position={[3.7 + Math.sin(i * 5) * 0.5, -0.04, -0.8 + i * 0.27]} scale={[0.14, 0.15, 0.14]} />)}
   </group>;
+}
+export function PlacedItem3D({ item, placement }: { item: CosmeticItem; placement: PlacedFurniture }) {
+  const ref = useRef<THREE.Group>(null);
+  useLayoutEffect(() => {
+    const model = ref.current;
+    if (!model) return;
+    model.scale.set(1, 1, 1); model.position.set(0, 0, 0);
+    const clone = model.clone(); clone.updateMatrixWorld(true);
+    const bounds = new THREE.Box3().setFromObject(clone);
+    const size = bounds.getSize(new THREE.Vector3()); const center = bounds.getCenter(new THREE.Vector3());
+    const sx = ((item.gridW ?? 1) * ROOM_GRID.cellSize - 0.06) / Math.max(size.x, 0.01);
+    const sz = ((item.gridH ?? 1) * ROOM_GRID.cellSize - 0.06) / Math.max(size.z, 0.01);
+    const sy = Math.min(sx, sz);
+    model.scale.set(sx, sy, sz); model.position.set(-center.x * sx, -bounds.min.y * sy, -center.z * sz);
+  }, [item.id, item.gridW, item.gridH]);
+  const { w, h } = footprint(item, placement.rotation);
+  const position: [number, number, number] = [ROOM_GRID.x + (placement.x + w / 2) * ROOM_GRID.cellSize, 0.1 + (item.layer ?? 1) * 0.015, ROOM_GRID.z + (placement.y + h / 2) * ROOM_GRID.cellSize];
+  return <group position={position} rotation={[0, placement.rotation * Math.PI / 2, 0]}><group ref={ref}><ProductModel item={item} /></group></group>;
 }
 function ProductModel({ item }: { item: CosmeticItem | 'potion' }) {
   if (item === 'potion') return <group><mesh castShadow position={[0, 0.75, 0]}><cylinderGeometry args={[0.38, 0.48, 0.95, 8]} /><meshStandardMaterial color="#b0c5a1" /></mesh><Box color="#99b38e" scale={[0.45, 0.35, 0.45]} position={[0, 1.32, 0]} /><Box color="#b38b59" scale={[0.48, 0.16, 0.48]} position={[0, 1.53, 0]} /><Box color="#f5e6c3" scale={[0.3, 0.12, 0.06]} position={[0, 0.8, 0.47]} /><Box color="#f5e6c3" scale={[0.12, 0.34, 0.06]} position={[0, 0.8, 0.47]} /></group>;
@@ -91,16 +110,16 @@ function Islands({ units, player, onSelect }: { units: Unit[]; player: PlayerSav
     {i < units.length - 1 && [0, 1, 2].map(j => <Box key={j} color="#b8a07b" position={[1.2 + j * 0.25, -0.05, -0.15]} scale={[0.18, 0.12, 0.55]} />)}
   </group>; })}</group>;
 }
-class SceneBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
+export class SceneBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
   state = { failed: false };
   static getDerivedStateFromError() { return { failed: true }; }
   render() { return this.state.failed ? <div className="scene-error" role="alert">3D 場景無法啟動。請開啟瀏覽器硬體加速，或使用支援 WebGL 的瀏覽器。</div> : this.props.children; }
 }
-export function World3D({ mode, player, units, unit, hit = false, onSelect, item, chestOpen = false, won = true }: { mode: 'home' | 'map' | 'battle' | 'result' | 'shop'; player: PlayerSave; units: Unit[]; unit?: Unit; hit?: boolean; onSelect?: (id: string) => void; item?: CosmeticItem | 'potion'; chestOpen?: boolean; won?: boolean }) {
-  return <SceneBoundary><Canvas key={mode} shadows dpr={[1, 1.5]} camera={{ position: mode === 'home' ? [9, 8, 11] : mode === 'map' ? [6, 9, 13] : mode === 'shop' ? [4, 3, 5] : [7, 5.5, 11], fov: mode === 'map' ? 43 : 40 }} gl={{ antialias: true, powerPreference: 'high-performance' }} fallback={<div className="scene-error">需要支援 WebGL 的瀏覽器才能呈現 3D 世界。</div>} aria-label={mode === 'home' ? '可旋轉的 3D 森林小屋與探險角色' : mode === 'map' ? '3D 冒險浮島地圖' : mode === 'shop' ? '商品 3D 預覽' : '3D 森林戰鬥場景'}>
+export function World3D({ mode, player, units, unit, hit = false, onSelect, item, chestOpen = false, won = true, items = [] }: { mode: 'home' | 'map' | 'battle' | 'result' | 'shop'; player: PlayerSave; units: Unit[]; unit?: Unit; hit?: boolean; onSelect?: (id: string) => void; item?: CosmeticItem | 'potion'; chestOpen?: boolean; won?: boolean; items?: CosmeticItem[] }) {
+  return <SceneBoundary><Canvas key={mode} shadows frameloop={mode === 'shop' || mode === 'map' ? 'demand' : 'always'} dpr={[1, 1.5]} camera={{ position: mode === 'home' ? [9, 8, 11] : mode === 'map' ? [6, 9, 13] : mode === 'shop' ? [4, 3, 5] : [7, 5.5, 11], fov: mode === 'map' ? 43 : 40 }} gl={{ antialias: true, powerPreference: 'high-performance' }} fallback={<div className="scene-error">需要支援 WebGL 的瀏覽器才能呈現 3D 世界。</div>} aria-label={mode === 'home' ? '可旋轉的 3D 森林小屋與探險角色' : mode === 'map' ? '3D 冒險浮島地圖' : mode === 'shop' ? '商品 3D 預覽' : '3D 森林戰鬥場景'}>
     <color attach="background" args={[mode === 'home' ? '#e6eadc' : '#dce5d6']} /><fog attach="fog" args={['#dce5d6', 22, 48]} />
     <ambientLight intensity={1.6} /><hemisphereLight args={['#fff7e1', '#788466', 1.5]} /><directionalLight position={[5, 10, 6]} intensity={2.3} castShadow shadow-mapSize={[1024, 1024]} shadow-camera-left={-10} shadow-camera-right={10} shadow-camera-top={10} shadow-camera-bottom={-10} shadow-normalBias={0.04} />
-    {mode === 'home' ? <Room player={player} /> : mode === 'map' ? <Islands units={units} player={player} onSelect={onSelect} /> : mode === 'shop' ? <><mesh receiveShadow position={[0, -0.12, 0]}><cylinderGeometry args={[2.2, 2, 0.25, 12]} /><meshStandardMaterial color="#bac7a4" /></mesh>{item && <ProductModel item={item} />}</> : <Arena unit={unit} hit={hit} result={mode === 'result'} won={won} chestOpen={chestOpen} />}
+    {mode === 'home' ? <Room player={player} items={items} /> : mode === 'map' ? <Islands units={units} player={player} onSelect={onSelect} /> : mode === 'shop' ? <><mesh receiveShadow position={[0, -0.12, 0]}><cylinderGeometry args={[2.2, 2, 0.25, 12]} /><meshStandardMaterial color="#bac7a4" /></mesh>{item && <ProductModel item={item} />}</> : <Arena unit={unit} hit={hit} result={mode === 'result'} won={won} chestOpen={chestOpen} />}
     <OrbitControls makeDefault enablePan={false} enableZoom minDistance={mode === 'shop' ? 4 : 8} maxDistance={22} maxPolarAngle={Math.PI / 2.15} minPolarAngle={0.25} target={[0, mode === 'map' ? 0 : 0.6, 0]} />
   </Canvas></SceneBoundary>;
 }

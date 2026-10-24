@@ -5,11 +5,12 @@ import { counterDamage, hitDamage, isUnlocked, levelFromXp, maxHp, selectQuestio
 import { LocalSaveRepository, newGame, type PlayerSave, type SaveRepository } from '../logic/save';
 import { awardDrops, rollDrops, type DropReceipt } from '../logic/drops';
 import { healWithPotion, purchase } from '../logic/shop';
+import { placeFurniture, type PlacedFurniture } from '../logic/placement';
 
-export type Screen = 'home' | 'map' | 'battle' | 'result' | 'shop';
+export type Screen = 'home' | 'map' | 'battle' | 'result' | 'shop' | 'decor';
 export interface Battle { unit: Unit; questions: Question[]; index: number; playerHp: number; playerMaxHp: number; bossHp: number; level: number; correct: number; feedback: { choice: number; correct: boolean; damage: number; critical: boolean } | null; outcome: 'won' | 'lost' | null }
 export interface BattleResult { won: boolean; coins: number; dropCoins: number; drops: DropReceipt[]; xp: number; correct: number; answered: number; stars: number; firstClear: boolean; unitName: string }
-interface GameState { pack: ContentPack; player: PlayerSave; screen: Screen; battle: Battle | null; result: BattleResult | null; warning: string | null; notice: string | null; saveStatus: 'saved' | 'pending' | 'error'; navigate(screen: 'home' | 'map' | 'shop'): void; startBattle(unitId: string): void; answer(choice: number): void; nextTurn(): void; buy(productId: string): void; usePotion(): void; dismissWarning(): void }
+interface GameState { pack: ContentPack; player: PlayerSave; screen: Screen; battle: Battle | null; result: BattleResult | null; warning: string | null; notice: string | null; saveStatus: 'saved' | 'pending' | 'error'; navigate(screen: 'home' | 'map' | 'shop' | 'decor'): void; startBattle(unitId: string): void; answer(choice: number): void; nextTurn(): void; buy(productId: string): void; usePotion(): void; place(placement: PlacedFurniture, movingIndex?: number | null): boolean; removeFurniture(index: number): void; dismissWarning(): void }
 
 export function createGameStore(pack: ContentPack, repository: SaveRepository, random: () => number = Math.random) {
   const loaded = repository.load();
@@ -21,6 +22,18 @@ export function createGameStore(pack: ContentPack, repository: SaveRepository, r
     pack, player: initial, screen: 'home', battle: null, result: null, notice: null, warning: wrongPack ? '存檔屬於其他內容包，原始存檔已保留。' : loaded.warning ?? null, saveStatus: writesEnabled ? 'saved' : 'error',
     navigate: screen => set({ screen, battle: null, result: null, notice: null }),
     dismissWarning: () => set({ warning: null }),
+    place: (placement, movingIndex = null) => {
+      if (get().screen !== 'decor') return false;
+      const result = placeFurniture(get().player, pack.items, placement, movingIndex);
+      if (!result.ok) { set({ notice: result.message }); return false; }
+      set({ player: { ...result.player, updatedAt: new Date().toISOString() }, notice: movingIndex === null ? '家具已擺好，小屋又溫暖了一點！' : '家具已移到新位置。' });
+      return true;
+    },
+    removeFurniture: index => {
+      const { player, screen } = get();
+      if (screen !== 'decor' || !Number.isInteger(index) || !player.roomLayout[index]) return;
+      set({ player: { ...player, roomLayout: player.roomLayout.filter((_, i) => i !== index), updatedAt: new Date().toISOString() }, notice: '家具已收回家具箱，隨時可以再擺出來。' });
+    },
     buy: productId => {
       if (get().screen !== 'shop') return;
       const result = purchase(get().player, productId, pack);

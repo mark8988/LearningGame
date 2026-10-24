@@ -53,4 +53,19 @@ describe('冒險狀態與結算', () => {
     expect(game.store.getState().player.inventory[id]).toBe(2); game.store.getState().nextTurn(); expect(game.store.getState().player.inventory[id]).toBe(2);
     game.store.getState().navigate('home'); game.flush(); expect(game.saved()?.inventory[id]).toBe(2); game.dispose();
   });
+  it('只在佈置模式修改位置，擺放／移動／收回不消耗庫存或金幣', () => {
+    const game = setup(); const position = { itemId: 'desk', x: 2, y: 2, rotation: 0 as const };
+    expect(game.store.getState().place(position)).toBe(false);
+    game.store.getState().navigate('decor'); expect(game.store.getState().place(position)).toBe(true);
+    expect(game.store.getState().place({ ...position, x: 4 }, 0)).toBe(true);
+    game.flush(); expect(game.saved()?.roomLayout).toEqual([{ ...position, x: 4 }]);
+    game.store.getState().removeFurniture(0); expect(game.store.getState().player.roomLayout).toHaveLength(0);
+    expect(game.store.getState().player.inventory.desk).toBe(1); expect(game.store.getState().player.coins).toBe(0); game.dispose();
+  });
+  it('拒絕擺放不寫入存檔，不合法收回不影響其他家具', () => {
+    const game = setup(); game.store.getState().navigate('decor');
+    expect(game.store.getState().place({ itemId: 'desk', x: 11, y: 7, rotation: 0 })).toBe(false);
+    expect(game.store.getState().notice).toContain('邊界'); expect(game.store.getState().player.roomLayout).toHaveLength(0);
+    game.store.getState().removeFurniture(-1); expect(game.store.getState().player.roomLayout).toHaveLength(0); game.dispose();
+  });
 });
