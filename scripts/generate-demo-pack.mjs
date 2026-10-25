@@ -103,6 +103,7 @@ const achievements = [
   { id: 'forest-five', name: '完成 5 場冒險', metric: 'battlesWon', target: 5, coins: 100 },
   { id: 'collector-eighteen', name: '收藏 18 款道具', metric: 'collection', target: 18, coins: 80 },
 ];
-const files = { 'pack.json': { id: 'science-g3', name: '國小三年級・自然探險', version: '0.5.0', subject: '自然', grade: 3, unitIds: units.map(u => u.id), demo: true }, 'units.json': units, 'questions.json': questions, 'items.json': items, 'outfit-models.json': models, 'drops.json': drops, 'encyclopedia.json': encyclopedia, 'achievements.json': achievements };
+questions.forEach(question => { if (question.id.endsWith('q01')) question.zhuyin = ["ㄓˊ ㄨˋ ㄓㄨˇ ㄧㄠˋ ㄩㄥˋ ㄋㄚˇ ㄍㄜ˙ ㄅㄨˋ ㄨㄟˋ ㄒㄧ ㄕㄡ ㄕㄨㄟˇ ㄈㄣˋ","ㄋㄚˇ ㄓㄨㄥˇ ㄉㄨㄥˋ ㄨˋ ㄐㄩˋ ㄧㄡˇ ㄩˇ ㄇㄠˊ","ㄘㄜˋ ㄌㄧㄤˊ ㄑㄧˋ ㄨㄣ ㄕˊ ㄨㄣ ㄉㄨˋ ㄐㄧˋ ㄧㄥ ㄈㄤˋ ㄗㄞˋ ㄋㄚˇ ㄌㄧˇ","ㄘˊ ㄊㄧㄝˇ ㄗㄨㄟˋ ㄖㄨㄥˊ ㄧˋ ㄒㄧ ㄓㄨˋ ㄋㄚˇ ㄍㄜ˙ ㄨˋ ㄆㄧㄣˇ","ㄅㄧㄥ ㄎㄨㄞˋ ㄖㄨㄥˊ ㄏㄨㄚˋ ㄏㄡˋ ㄅㄧㄢˋ ㄔㄥˊ ㄕㄣˊ ㄇㄜ˙"][Number(question.unitId.slice(-1)) - 1]; });
+const files = { 'pack.json': { id: 'science-g3', name: '國小三年級・自然探險', version: '0.6.0', subject: '自然', grade: 3, unitIds: units.map(u => u.id), demo: true }, 'units.json': units, 'questions.json': questions, 'items.json': items, 'outfit-models.json': models, 'drops.json': drops, 'encyclopedia.json': encyclopedia, 'achievements.json': achievements };
 for (const [file, value] of Object.entries(files)) writeFileSync(new URL(file, directory), JSON.stringify(value, null, 2) + '\n');
 console.log(`Demo pack: ${units.length} units, ${questions.length} questions`);

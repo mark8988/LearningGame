@@ -17,10 +17,10 @@ export function newGame(pack: ContentPack): PlayerSave {
 export interface SaveRepository { load(): { save: PlayerSave | null; warning?: string }; save(value: PlayerSave): void }
 export const SAVE_KEY = 'learning-adventure:save:v1';
 export class LocalSaveRepository implements SaveRepository {
-  constructor(private storage: Pick<Storage, 'getItem' | 'setItem'>) {}
+  constructor(private storage: Pick<Storage, 'getItem' | 'setItem'>, private key = SAVE_KEY) {}
   load(): { save: PlayerSave | null; warning?: string } {
     let raw: string | null;
-    try { raw = this.storage.getItem(SAVE_KEY); } catch { return { save: null, warning: '無法讀取本機存檔；目前進度只保留到關閉頁面。' }; }
+    try { raw = this.storage.getItem(this.key); } catch { return { save: null, warning: '無法讀取本機存檔；目前進度只保留到關閉頁面。' }; }
     if (!raw) return { save: null };
     let data: unknown;
     try { data = JSON.parse(raw); } catch { return this.recover(raw); }
@@ -29,8 +29,8 @@ export class LocalSaveRepository implements SaveRepository {
     return result.success ? { save: result.data } : this.recover(raw);
   }
   private recover(raw: string) {
-    try { this.storage.setItem(`${SAVE_KEY}:corrupt:${Date.now()}`, raw); } catch { return { save: null, warning: '存檔損毀且備份失敗，原始存檔將保留；請家長協助。' }; }
+    try { this.storage.setItem(`${this.key}:corrupt:${Date.now()}`, raw); } catch { return { save: null, warning: '存檔損毀且備份失敗，原始存檔將保留；請家長協助。' }; }
     return { save: null, warning: '存檔損毀，已保留備份並建立新遊戲，請家長協助檢查。' };
   }
-  save(value: PlayerSave) { this.storage.setItem(SAVE_KEY, JSON.stringify(saveSchema.parse(value))); }
+  save(value: PlayerSave) { this.storage.setItem(this.key, JSON.stringify(saveSchema.parse(value))); }
 }

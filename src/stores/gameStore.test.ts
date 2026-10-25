@@ -11,6 +11,9 @@ function setup(initial: PlayerSave | null = null) {
 }
 afterEach(() => vi.useRealTimers());
 describe('冒險狀態與結算', () => {
+  it('未通過家長驗證不可進入或還原，離開後上鎖', () => { const game = setup(); const save = newGame(pack); game.store.getState().navigate('parent'); expect(game.store.getState().screen).toBe('home'); expect(() => game.store.getState().replaceProgress(save)).toThrow('家長驗證'); game.store.getState().authorizeParent(); expect(game.store.getState().screen).toBe('parent'); game.store.getState().navigate('home'); expect(game.store.getState().parentUnlocked).toBe(false); game.dispose(); });
+  it('還原先驗證再保存並清除舊戰鬥，未完成的 debounce 不會蓋回舊進度', () => { vi.useFakeTimers(); const game = setup(); game.store.getState().startBattle(pack.units[0].id); const q = game.store.getState().battle!.questions[0]; game.store.getState().answer(q.answerIndex); const save = newGame(pack); save.coins = 123; game.store.getState().authorizeParent(); game.store.getState().replaceProgress(save); expect(game.store.getState().battle).toBeNull(); vi.advanceTimersByTime(1000); expect(game.saved()?.coins).toBe(123); expect(game.store.getState().player.xp).toBe(0); game.dispose(); });
+  it('還原儲存失敗保留記憶體進度，不發布成功訊息', () => { const game = setup(); game.store.getState().authorizeParent(); const before = game.store.getState().player; vi.mocked(game.repository.save).mockImplementationOnce(() => { throw new Error('QuotaExceeded'); }); const save = newGame(pack); save.coins = 900; expect(() => game.store.getState().replaceProgress(save)).toThrow('QuotaExceeded'); expect(game.store.getState().player).toBe(before); game.dispose(); });
   it('不能進入未解鎖關卡', () => { const game = setup(); game.store.getState().startBattle(pack.units[1].id); expect(game.store.getState().battle).toBeNull(); game.dispose(); });
   it('答錯顯示解析資料、紀錄錯題，重複點擊不重複計算', () => {
     const game = setup(); game.store.getState().startBattle(pack.units[0].id); const battle = game.store.getState().battle!; const q = battle.questions[0];

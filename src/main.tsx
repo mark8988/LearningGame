@@ -6,4 +6,5 @@ import './commerce.css';
 import './decor.css';
 import './wardrobe.css';
 import './learning.css';
+import './parent.css';
 ReactDOM.createRoot(document.getElementById('root')!).render(<React.StrictMode><App /></React.StrictMode>);

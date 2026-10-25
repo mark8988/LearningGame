@@ -1,5 +1,7 @@
 import { create } from 'zustand';
-import { loadBuiltinPack } from '../data/loader';
+import { bootContent } from '../data/library';
+import { validateProgress } from '../logic/transfers';
+import { playSound } from '../logic/sound';
 import type { ContentPack, Question, Unit } from '../data/schemas';
 import { counterDamage, hitDamage, isUnlocked, levelFromXp, maxHp, selectQuestions, starCount, victoryCoins } from '../logic/battle';
 import { LocalSaveRepository, newGame, type PlayerSave, type SaveRepository } from '../logic/save';
@@ -11,11 +13,11 @@ import type { OutfitSlot } from '../data/schemas';
 import { unlockAchievements, type AchievementAward } from '../logic/achievements';
 import { answerReview, reviewQuestions, unlockedEntries } from '../logic/learning';
 
-export type Screen = 'home' | 'map' | 'battle' | 'result' | 'shop' | 'decor' | 'wardrobe' | 'dex' | 'review' | 'achievements';
+export type Screen = 'home' | 'map' | 'battle' | 'result' | 'shop' | 'decor' | 'wardrobe' | 'dex' | 'review' | 'achievements' | 'parent';
 export interface ReviewState { questions: Question[]; index: number; correct: number; coins: number; done: boolean; feedback: { choice: number; correct: boolean } | null }
 export interface Battle { unit: Unit; questions: Question[]; index: number; playerHp: number; playerMaxHp: number; bossHp: number; level: number; correct: number; feedback: { choice: number; correct: boolean; damage: number; critical: boolean } | null; outcome: 'won' | 'lost' | null }
 export interface BattleResult { won: boolean; coins: number; dropCoins: number; drops: DropReceipt[]; xp: number; correct: number; answered: number; stars: number; firstClear: boolean; unitName: string }
-interface GameState { pack: ContentPack; player: PlayerSave; screen: Screen; battle: Battle | null; result: BattleResult | null; review: ReviewState | null; achievementQueue: AchievementAward[]; warning: string | null; notice: string | null; saveStatus: 'saved' | 'pending' | 'error'; navigate(screen: Exclude<Screen, 'battle' | 'result' | 'review'>): void; startBattle(unitId: string): void; answer(choice: number): void; nextTurn(): void; startReview(): void; reviewAnswer(choice: number): void; nextReview(): void; readEntry(id: string): void; dismissAchievement(): void; buy(productId: string): void; usePotion(): void; equip(slot: OutfitSlot, itemId: string | null): void; place(placement: PlacedFurniture, movingIndex?: number | null): boolean; removeFurniture(index: number): void; dismissWarning(): void }
+interface GameState { parentUnlocked: boolean; authorizeParent(): void; replaceProgress(save: PlayerSave): void; pack: ContentPack; player: PlayerSave; screen: Screen; battle: Battle | null; result: BattleResult | null; review: ReviewState | null; achievementQueue: AchievementAward[]; warning: string | null; notice: string | null; saveStatus: 'saved' | 'pending' | 'error'; navigate(screen: Exclude<Screen, 'battle' | 'result' | 'review'>): void; startBattle(unitId: string): void; answer(choice: number): void; nextTurn(): void; startReview(): void; reviewAnswer(choice: number): void; nextReview(): void; readEntry(id: string): void; dismissAchievement(): void; buy(productId: string): void; usePotion(): void; equip(slot: OutfitSlot, itemId: string | null): void; place(placement: PlacedFurniture, movingIndex?: number | null): boolean; removeFurniture(index: number): void; dismissWarning(): void }
 
 export function createGameStore(pack: ContentPack, repository: SaveRepository, random: () => number = Math.random) {
   const loaded = repository.load();
@@ -28,6 +30,7 @@ export function createGameStore(pack: ContentPack, repository: SaveRepository, r
   if (initialAwards.awards.length > 0) initialAwards.player = { ...initialAwards.player, updatedAt: new Date().toISOString() };
   let writesEnabled = !wrongPack && !loaded.warning?.includes('原始存檔');
   let timer: ReturnType<typeof setTimeout> | undefined;
+  let replacing = false;
   const store = create<GameState>((write, get) => {
     const set = (patch: Partial<GameState>) => {
       if (!patch.player) { write(patch); return; }
@@ -35,8 +38,19 @@ export function createGameStore(pack: ContentPack, repository: SaveRepository, r
       write({ ...patch, player: result.player, achievementQueue: [...get().achievementQueue, ...result.awards] });
     };
     return {
+    parentUnlocked: false, authorizeParent: () => set({ parentUnlocked: true, screen: 'parent' }),
+    replaceProgress: input => {
+      if (!get().parentUnlocked || get().screen !== 'parent') throw new Error('請先通過家長驗證。');
+      const save = validateProgress(input, pack);
+      const awards = unlockAchievements({ ...save, updatedAt: new Date().toISOString() }, pack);
+      repository.save(awards.player);
+      if (timer) clearTimeout(timer); timer = undefined; writesEnabled = true;
+      replacing = true;
+      try { write({ player: awards.player, battle: null, result: null, review: null, achievementQueue: awards.awards, warning: null, notice: '進度已還原並儲存。', saveStatus: 'saved' }); }
+      finally { replacing = false; }
+    },
     pack, player: initialAwards.player, screen: 'home', battle: null, result: null, review: null, achievementQueue: initialAwards.awards, notice: null, warning: wrongPack ? '存檔屬於其他內容包，原始存檔已保留。' : loaded.warning ?? (repairedOutfit ? '部分裝扮無法使用，已還原預設外觀，收藏及其他進度仍保留。' : null), saveStatus: writesEnabled ? 'saved' : 'error',
-    navigate: screen => set({ screen, battle: null, result: null, review: null, notice: null }),
+    navigate: screen => { if (screen === 'parent' && !get().parentUnlocked) return; set({ screen, parentUnlocked: screen === 'parent' && get().parentUnlocked, battle: null, result: null, review: null, notice: null }); },
     dismissWarning: () => set({ warning: null }),
     dismissAchievement: () => set({ achievementQueue: get().achievementQueue.slice(1) }),
     readEntry: id => {
@@ -47,7 +61,7 @@ export function createGameStore(pack: ContentPack, repository: SaveRepository, r
     startReview: () => {
       if (get().screen === 'battle') return;
       const questions = reviewQuestions(get().player, pack);
-      set({ screen: 'review', battle: null, result: null, notice: null, review: { questions, index: 0, correct: 0, coins: 0, done: questions.length === 0, feedback: null } });
+      set({ parentUnlocked: false, screen: 'review', battle: null, result: null, notice: null, review: { questions, index: 0, correct: 0, coins: 0, done: questions.length === 0, feedback: null } });
     },
     reviewAnswer: choice => {
       const { review, player, screen } = get();
@@ -94,7 +108,7 @@ export function createGameStore(pack: ContentPack, repository: SaveRepository, r
       const unit = pack.units.find(u => u.id === unitId);
       if (!unit || !isUnlocked(unit, player.clearedUnitIds)) return;
       const level = levelFromXp(player.xp);
-      set({ screen: 'battle', result: null, review: null, notice: null, battle: { unit, questions: selectQuestions(pack.questions.filter(q => unit.questionPool.includes(q.id)), player.wrongQuestionIds, random), index: 0, playerHp: maxHp(level), playerMaxHp: maxHp(level), bossHp: unit.boss.hp, level, correct: 0, feedback: null, outcome: null } });
+      set({ parentUnlocked: false, screen: 'battle', result: null, review: null, notice: null, battle: { unit, questions: selectQuestions(pack.questions.filter(q => unit.questionPool.includes(q.id)), player.wrongQuestionIds, random), index: 0, playerHp: maxHp(level), playerMaxHp: maxHp(level), bossHp: unit.boss.hp, level, correct: 0, feedback: null, outcome: null } });
     },
     answer: choice => {
       const { battle, player } = get();
@@ -130,7 +144,7 @@ export function createGameStore(pack: ContentPack, repository: SaveRepository, r
     catch { store.setState({ warning: '本機存檔失敗，請勿關閉頁面，並確認瀏覽器允許儲存資料。', saveStatus: 'error' }); }
   };
   const unsubscribe = store.subscribe((state, previous) => {
-    if (state.player === previous.player || !writesEnabled) return;
+    if (state.player === previous.player || !writesEnabled || replacing) return;
     store.setState({ saveStatus: 'pending' });
     if (timer) clearTimeout(timer);
     timer = setTimeout(flush, 500);
@@ -142,7 +156,15 @@ export function createGameStore(pack: ContentPack, repository: SaveRepository, r
 let boot: ReturnType<typeof createGameStore> | null = null;
 let bootError: string | null = null;
 try {
-  boot = createGameStore(loadBuiltinPack(), new LocalSaveRepository({ getItem: key => window.localStorage.getItem(key), setItem: (key, value) => window.localStorage.setItem(key, value) }));
+  const content = bootContent(window.localStorage);
+  boot = createGameStore(content.pack, new LocalSaveRepository(window.localStorage, content.key));
+  if (content.warning) boot.store.setState({ warning: [boot.store.getState().warning, content.warning].filter(Boolean).join(' ') });
+  boot.store.subscribe((state, previous) => {
+    const feedback = state.battle?.feedback ?? state.review?.feedback;
+    const old = previous.battle?.feedback ?? previous.review?.feedback;
+    if (feedback && feedback !== old) playSound(feedback.correct ? 'correct' : 'wrong');
+    else if (state.player.coins > previous.player.coins) playSound('reward');
+  });
   window.addEventListener('pagehide', boot.flush);
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') boot?.flush(); });
 } catch (error) { bootError = error instanceof Error ? error.message : String(error); }

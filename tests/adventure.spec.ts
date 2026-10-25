@@ -19,7 +19,7 @@ test('3D 小屋 → 地圖 → 答錯解析 → 通關 → 重新整理保留進
   await expect(page.getByRole('region', { name: '答題挑戰' })).toBeVisible();
   let rounds = 0;
   while (await page.getByRole('region', { name: '答題挑戰' }).count()) {
-    const stem = await page.locator('.question-card h2').innerText();
+    const stem = await page.locator('.question-card h2').getAttribute('data-stem');
     const q = questions.find(question => question.stem === stem)!;
     const choice = rounds === 0 ? (q.answerIndex + 1) % 4 : q.answerIndex;
     await page.locator('.answers button').nth(choice).click();
@@ -59,7 +59,7 @@ test('失敗不扣獎勵，重開戰鬥恢復生命', async ({ page }) => {
   await page.getByRole('button', { name: '開始冒險' }).click();
   await page.getByRole('button', { name: /植物構造與功能/ }).click();
   for (let round = 0; round < 5; round++) {
-    const stem = await page.locator('.question-card h2').innerText();
+    const stem = await page.locator('.question-card h2').getAttribute('data-stem');
     const q = questions.find(question => question.stem === stem)!;
     await page.locator('.answers button').nth((q.answerIndex + 1) % 4).click();
     await page.getByRole('button', { name: /繼續挑戰|看看冒險成果/ }).click();

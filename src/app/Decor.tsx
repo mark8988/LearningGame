@@ -1,4 +1,4 @@
-import { useRef, useState, type PointerEvent } from 'react';
+import { useEffect, useRef, useState, type PointerEvent } from 'react';
 import { Armchair, ArrowLeft, Check, Hand, Package, RotateCw, Trash2, Trophy, X } from 'lucide-react';
 import { boot } from '../stores/gameStore';
 import { RoomEditor3D } from '../components/RoomEditor3D';
@@ -16,6 +16,15 @@ export function Decor() {
   const sceneRef = useRef<HTMLDivElement>(null);
   const cells = useRef<(SVGPolygonElement | null)[]>([]);
   const drag = useRef<Drag | null>(null);
+  const suppressDragClick = useRef(false);
+  useEffect(() => {
+    const reset = () => { suppressDragClick.current = false; };
+    const click = (event: MouseEvent) => {
+      if (suppressDragClick.current && event.detail > 0) { suppressDragClick.current = false; event.preventDefault(); event.stopImmediatePropagation(); }
+    };
+    window.addEventListener('pointerdown', reset, true); window.addEventListener('click', click, true);
+    return () => { window.removeEventListener('pointerdown', reset, true); window.removeEventListener('click', click, true); };
+  }, []);
   const furniture = pack.items.filter(item => item.kind === 'furniture' && (player.inventory[item.id] ?? 0) > 0);
   const selectedItem = pack.items.find(item => item.id === selection?.itemId);
   const stats = collectionStats(player, pack.items);
@@ -74,6 +83,9 @@ export function Decor() {
   function end(event: PointerEvent<HTMLDivElement>) {
     const current = drag.current;
     if (!current || current.pointerId !== event.pointerId) return;
+    // The source can become disabled after placement; suppress its trailing click,
+    // which some mobile browsers retarget after layout and pointer-capture changes.
+    suppressDragClick.current = current.moved;
     drag.current = null;
     const cell = cellAt(event.clientX, event.clientY);
     if (!cell) { setPreview(null); return; }

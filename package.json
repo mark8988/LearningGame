@@ -1,8 +1,10 @@
 {
   "name": "learning-adventure",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "private": true,
-  "engines": { "node": ">=24.0.0" },
+  "engines": {
+    "node": ">=24.0.0"
+  },
   "type": "module",
   "scripts": {
     "dev": "vite --host 127.0.0.1",
@@ -12,7 +14,8 @@
     "preview": "vite preview --host 127.0.0.1",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "test:offline": "playwright test --config playwright.offline.config.ts"
   },
   "dependencies": {
     "@react-three/drei": "^9.122.0",
@@ -27,6 +30,7 @@
   "devDependencies": {
     "@playwright/test": "^1.56.1",
     "@tailwindcss/postcss": "^4.3.3",
+    "@types/node": "^24.19.2",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
     "@types/three": "^0.170.0",

@@ -130,6 +130,7 @@ interface Question {
   answerIndex: 0 | 1 | 2 | 3;
   explanation: string;     // 答後解析（教學關鍵，必填）
   difficulty: 1 | 2 | 3;
+  zhuyin?: string;         // 逐漢字注音，以空白分隔，不含標點；由 ruby 呈現
 }
 ```
 

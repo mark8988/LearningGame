@@ -32,7 +32,7 @@ test('舊存檔相容、商店三分頁、購買確認、藥水補血與持久�
   await page.getByRole('button', { name: /植物構造與功能/ }).click();
   await expect(page.getByRole('button', { name: /使用藥水/ })).toBeDisabled();
   for (let i = 0; i < 3; i++) {
-    const stem = await page.locator('.question-card h2').innerText();
+    const stem = await page.locator('.question-card h2').getAttribute('data-stem');
     const q = questions.find(q => q.stem === stem)!;
     await page.locator('.answers button').nth((q.answerIndex + 1) % 4).click();
     await expect(page.getByRole('button', { name: /使用藥水/ })).toBeDisabled();
@@ -40,10 +40,10 @@ test('舊存檔相容、商店三分頁、購買確認、藥水補血與持久�
   }
   const hp = page.getByRole('progressbar', { name: /探險家/ });
   await expect(hp).toHaveAttribute('value', '37');
-  const stem = await page.locator('.question-card h2').innerText();
+  const stem = await page.locator('.question-card h2').getAttribute('data-stem');
   await page.getByRole('button', { name: /使用藥水（2 瓶）/ }).click();
   await expect(hp).toHaveAttribute('value', '87');
-  await expect(page.locator('.question-card h2')).toHaveText(stem);
+  await expect(page.locator('.question-card h2')).toHaveAttribute('data-stem', stem!);
   await page.getByRole('button', { name: /使用藥水（1 瓶）/ }).click();
   await expect(hp).toHaveAttribute('value', '100');
   await expect(page.getByRole('button', { name: /使用藥水（0 瓶）/ })).toBeDisabled();

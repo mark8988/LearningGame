@@ -11,7 +11,8 @@
     ],
     "answerIndex": 0,
     "explanation": "根能吸收土壤中的水分和養分。",
-    "difficulty": 1
+    "difficulty": 1,
+    "zhuyin": "ㄓˊ ㄨˋ ㄓㄨˇ ㄧㄠˋ ㄩㄥˋ ㄋㄚˇ ㄍㄜ˙ ㄅㄨˋ ㄨㄟˋ ㄒㄧ ㄕㄡ ㄕㄨㄟˇ ㄈㄣˋ"
   },
   {
     "id": "sci-g3-u1-q02",
@@ -179,7 +180,8 @@
     ],
     "answerIndex": 0,
     "explanation": "鳥類具有羽毛，麻雀是鳥類。",
-    "difficulty": 1
+    "difficulty": 1,
+    "zhuyin": "ㄋㄚˇ ㄓㄨㄥˇ ㄉㄨㄥˋ ㄨˋ ㄐㄩˋ ㄧㄡˇ ㄩˇ ㄇㄠˊ"
   },
   {
     "id": "sci-g3-u2-q02",
@@ -347,7 +349,8 @@
     ],
     "answerIndex": 0,
     "explanation": "通風陰涼處可避免太陽直射或熱源影響氣溫讀數。",
-    "difficulty": 1
+    "difficulty": 1,
+    "zhuyin": "ㄘㄜˋ ㄌㄧㄤˊ ㄑㄧˋ ㄨㄣ ㄕˊ ㄨㄣ ㄉㄨˋ ㄐㄧˋ ㄧㄥ ㄈㄤˋ ㄗㄞˋ ㄋㄚˇ ㄌㄧˇ"
   },
   {
     "id": "sci-g3-u3-q02",
@@ -515,7 +518,8 @@
     ],
     "answerIndex": 0,
     "explanation": "一般磁鐵能吸引鐵製物品，並非所有金屬都會被吸引。",
-    "difficulty": 1
+    "difficulty": 1,
+    "zhuyin": "ㄘˊ ㄊㄧㄝˇ ㄗㄨㄟˋ ㄖㄨㄥˊ ㄧˋ ㄒㄧ ㄓㄨˋ ㄋㄚˇ ㄍㄜ˙ ㄨˋ ㄆㄧㄣˇ"
   },
   {
     "id": "sci-g3-u4-q02",
@@ -683,7 +687,8 @@
     ],
     "answerIndex": 0,
     "explanation": "冰是固態的水，融化後成為液態水。",
-    "difficulty": 1
+    "difficulty": 1,
+    "zhuyin": "ㄅㄧㄥ ㄎㄨㄞˋ ㄖㄨㄥˊ ㄏㄨㄚˋ ㄏㄡˋ ㄅㄧㄢˋ ㄔㄥˊ ㄕㄣˊ ㄇㄜ˙"
   },
   {
     "id": "sci-g3-u5-q02",

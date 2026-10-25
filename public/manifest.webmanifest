@@ -1,0 +1,16 @@
+{
+  "id": "./",
+  "name": "森知冒險｜小小探險家的學習世界",
+  "short_name": "森知冒險",
+  "lang": "zh-Hant",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "theme_color": "#315b43",
+  "background_color": "#f7f8f2",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

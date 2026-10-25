@@ -21,7 +21,7 @@ test('通關解鎖三篇知識、已讀保存、道具剪影與實際取得線�
   await mainNav(page, '冒險地圖').click(); await page.getByRole('button', { name: /植物構造與功能/ }).click();
   let rounds = 0;
   while (await page.getByRole('region', { name: '答題挑戰' }).count()) {
-    const stem = await page.locator('.question-card h2').innerText(); const q = questions.find(q => q.stem === stem)!;
+    const stem = await page.locator('.question-card h2').getAttribute('data-stem'); const q = questions.find(q => q.stem === stem)!;
     await page.locator('.answers button').nth(rounds === 0 ? (q.answerIndex + 1) % 4 : q.answerIndex).click(); await page.getByRole('button', { name: /繼續挑戰|看看冒險成果/ }).click(); expect(++rounds).toBeLessThanOrEqual(10);
   }
   await expect(page.getByRole('heading', { name: '挑戰成功！' })).toBeVisible(); await expect(page.getByRole('region', { name: '成就通知' })).toContainText('第一場自然冒險');
