@@ -1,6 +1,7 @@
 import { z } from 'zod';
-import { manifestSchema, questionSchema, unitSchema, itemSchema, dropTableSchema, encyclopediaSchema, achievementSchema, type ContentPack } from './schemas';
+import { manifestSchema, questionSchema, unitSchema, itemSchema, outfitModelSchema, dropTableSchema, encyclopediaSchema, achievementSchema, type ContentPack } from './schemas';
 import { gameConfig } from './gameConfig';
+import { outfitAnchors, styleSlots } from './outfitConfig';
 
 export function parseFile<T>(file: string, schema: z.ZodType<T>, input: unknown): T {
   const result = schema.safeParse(input);
@@ -13,6 +14,7 @@ export function validatePack(files: Record<string, unknown>): ContentPack {
     questions: parseFile('questions.json', z.array(questionSchema).min(1), files['questions.json']),
     units: parseFile('units.json', z.array(unitSchema).min(1), files['units.json']),
     items: parseFile('items.json', z.array(itemSchema), files['items.json']),
+    outfitModels: parseFile('outfit-models.json', z.array(outfitModelSchema), files['outfit-models.json']),
     dropTables: parseFile('drops.json', z.array(dropTableSchema), files['drops.json']),
     encyclopedia: parseFile('encyclopedia.json', z.array(encyclopediaSchema), files['encyclopedia.json']),
     achievements: parseFile('achievements.json', z.array(achievementSchema), files['achievements.json']),
@@ -26,7 +28,14 @@ export function validatePack(files: Record<string, unknown>): ContentPack {
   const entries = new Map(pack.encyclopedia.map(e => [e.id, e]));
   const tables = new Set(pack.dropTables.map(t => t.id));
   const items = new Map(pack.items.map(item => [item.id, item]));
+  const modelAssets = new Set<string>();
+  pack.outfitModels.forEach((model, i) => {
+    if (modelAssets.has(model.asset)) throw new Error(`outfit-models.json：${i}.asset 重複 ${model.asset}`);
+    modelAssets.add(model.asset);
+    if (styleSlots[model.style] !== model.slot || model.anchor.some((value, index) => value !== outfitAnchors[model.slot][index])) throw new Error(`outfit-models.json：${i}.anchor 模型樣式、部位或錨點不符規範`);
+  });
   pack.items.forEach((item, i) => {
+    if (item.kind === 'outfit' && !pack.outfitModels.some(model => model.asset === item.asset && model.slot === item.outfitSlot)) throw new Error(`items.json：${i}.asset 缺少對應部位的 3D 裝扮模型`);
     if (!item.obtainFrom.includes('shop')) return;
     const [min, max] = gameConfig.priceBands[item.rarity];
     if (item.price < min || item.price > max) throw new Error(`items.json：${i}.price 商店售價必須在 ${min}–${max} 之間`);

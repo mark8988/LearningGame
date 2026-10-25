@@ -208,5 +208,44 @@
     "gridW": 2,
     "gridH": 2,
     "layer": 1
+  },
+  {
+    "id": "sunny-hair",
+    "name": "暖栗短髮",
+    "kind": "outfit",
+    "rarity": "common",
+    "price": 80,
+    "asset": "procedural:sunny-hair",
+    "obtainFrom": [
+      "shop",
+      "drop"
+    ],
+    "outfitSlot": "hair"
+  },
+  {
+    "id": "trail-trousers",
+    "name": "湖藍探險褲",
+    "kind": "outfit",
+    "rarity": "common",
+    "price": 70,
+    "asset": "procedural:trail-trousers",
+    "obtainFrom": [
+      "shop",
+      "drop"
+    ],
+    "outfitSlot": "bottom"
+  },
+  {
+    "id": "trail-boots",
+    "name": "焦糖小短靴",
+    "kind": "outfit",
+    "rarity": "common",
+    "price": 60,
+    "asset": "procedural:trail-boots",
+    "obtainFrom": [
+      "shop",
+      "drop"
+    ],
+    "outfitSlot": "shoes"
   }
 ]

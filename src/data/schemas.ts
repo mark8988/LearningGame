@@ -13,6 +13,9 @@ export const achievementSchema = z.object({ id, name: id, metric: z.enum(['corre
 export type Question = z.infer<typeof questionSchema>;
 export type Unit = z.infer<typeof unitSchema>;
 export type CosmeticItem = z.infer<typeof itemSchema>;
+export type OutfitSlot = NonNullable<CosmeticItem['outfitSlot']>;
+export const outfitModelSchema = z.object({ asset: id, slot: z.enum(['hair', 'top', 'bottom', 'shoes', 'hat', 'accessory', 'handheld']), style: z.enum(['hair', 'jacket', 'trousers', 'boots', 'cap', 'crown', 'feather', 'magnet', 'scarf', 'lantern']), color: z.string().regex(/^#[0-9a-fA-F]{6}$/), accent: z.string().regex(/^#[0-9a-fA-F]{6}$/), anchor: z.tuple([z.number().finite(), z.number().finite(), z.number().finite()]) });
+export type OutfitModel = z.infer<typeof outfitModelSchema>;
 export const dropTableSchema = z.object({ id, common: z.array(id).min(1), rare: z.array(id).min(1), epic: z.array(id).min(1) });
 export type DropTable = z.infer<typeof dropTableSchema>;
-export interface ContentPack { manifest: z.infer<typeof manifestSchema>; questions: Question[]; units: Unit[]; items: CosmeticItem[]; dropTables: DropTable[]; encyclopedia: z.infer<typeof encyclopediaSchema>[]; achievements: z.infer<typeof achievementSchema>[] }
+export interface ContentPack { manifest: z.infer<typeof manifestSchema>; questions: Question[]; units: Unit[]; items: CosmeticItem[]; outfitModels: OutfitModel[]; dropTables: DropTable[]; encyclopedia: z.infer<typeof encyclopediaSchema>[]; achievements: z.infer<typeof achievementSchema>[] }

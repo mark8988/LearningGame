@@ -1,7 +1,7 @@
 import { useLayoutEffect } from 'react';
 import { Canvas, useThree } from '@react-three/fiber';
 import { OrthographicCamera, Vector3 } from 'three';
-import type { CosmeticItem } from '../data/schemas';
+import type { CosmeticItem, OutfitModel } from '../data/schemas';
 import type { PlayerSave } from '../logic/save';
 import { ROOM_GRID, type GridProjection, type PlacedFurniture } from '../logic/placement';
 import { PlacedItem3D, Room, SceneBoundary } from './World3D';
@@ -22,12 +22,12 @@ function EditorCamera({ onProjection }: { onProjection(value: GridProjection): v
   }, [camera, size.width, size.height, onProjection]);
   return null;
 }
-export function RoomEditor3D({ player, items, preview, movingIndex, onProjection }: { player: PlayerSave; items: CosmeticItem[]; preview: PlacedFurniture | null; movingIndex: number | null; onProjection(value: GridProjection): void }) {
+export function RoomEditor3D({ player, items, models, preview, movingIndex, onProjection }: { player: PlayerSave; items: CosmeticItem[]; models: OutfitModel[]; preview: PlacedFurniture | null; movingIndex: number | null; onProjection(value: GridProjection): void }) {
   const selected = preview && items.find(item => item.id === preview.itemId);
   return <SceneBoundary><Canvas orthographic shadows frameloop="demand" dpr={[1, 1.5]} camera={{ position: [8, 11, 10], zoom: 50, near: 0.1, far: 100 }} gl={{ antialias: true }} aria-label="3D 小屋佈置場景" fallback={<div className="scene-error">請使用支援 WebGL 的瀏覽器來佈置 3D 小屋。</div>}>
     <color attach="background" args={['#e6eadc']} /><ambientLight intensity={1.6} /><hemisphereLight args={['#fff7e1', '#788466', 1.5]} /><directionalLight position={[5, 10, 6]} intensity={2.3} castShadow shadow-mapSize={[1024, 1024]} shadow-camera-left={-10} shadow-camera-right={10} shadow-camera-top={10} shadow-camera-bottom={-10} shadow-normalBias={0.04} />
     <EditorCamera onProjection={onProjection} />
-    <Room player={player} items={items} hideIndex={preview && movingIndex !== null ? movingIndex : undefined} />
+    <Room player={player} items={items} models={models} hideIndex={preview && movingIndex !== null ? movingIndex : undefined} />
     {selected && preview && <PlacedItem3D item={selected} placement={preview} />}
   </Canvas></SceneBoundary>;
 }

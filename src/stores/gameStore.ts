@@ -6,22 +6,32 @@ import { LocalSaveRepository, newGame, type PlayerSave, type SaveRepository } fr
 import { awardDrops, rollDrops, type DropReceipt } from '../logic/drops';
 import { healWithPotion, purchase } from '../logic/shop';
 import { placeFurniture, type PlacedFurniture } from '../logic/placement';
+import { equipOutfit, normalizeOutfit } from '../logic/outfits';
+import type { OutfitSlot } from '../data/schemas';
 
-export type Screen = 'home' | 'map' | 'battle' | 'result' | 'shop' | 'decor';
+export type Screen = 'home' | 'map' | 'battle' | 'result' | 'shop' | 'decor' | 'wardrobe';
 export interface Battle { unit: Unit; questions: Question[]; index: number; playerHp: number; playerMaxHp: number; bossHp: number; level: number; correct: number; feedback: { choice: number; correct: boolean; damage: number; critical: boolean } | null; outcome: 'won' | 'lost' | null }
 export interface BattleResult { won: boolean; coins: number; dropCoins: number; drops: DropReceipt[]; xp: number; correct: number; answered: number; stars: number; firstClear: boolean; unitName: string }
-interface GameState { pack: ContentPack; player: PlayerSave; screen: Screen; battle: Battle | null; result: BattleResult | null; warning: string | null; notice: string | null; saveStatus: 'saved' | 'pending' | 'error'; navigate(screen: 'home' | 'map' | 'shop' | 'decor'): void; startBattle(unitId: string): void; answer(choice: number): void; nextTurn(): void; buy(productId: string): void; usePotion(): void; place(placement: PlacedFurniture, movingIndex?: number | null): boolean; removeFurniture(index: number): void; dismissWarning(): void }
+interface GameState { pack: ContentPack; player: PlayerSave; screen: Screen; battle: Battle | null; result: BattleResult | null; warning: string | null; notice: string | null; saveStatus: 'saved' | 'pending' | 'error'; navigate(screen: 'home' | 'map' | 'shop' | 'decor' | 'wardrobe'): void; startBattle(unitId: string): void; answer(choice: number): void; nextTurn(): void; buy(productId: string): void; usePotion(): void; equip(slot: OutfitSlot, itemId: string | null): void; place(placement: PlacedFurniture, movingIndex?: number | null): boolean; removeFurniture(index: number): void; dismissWarning(): void }
 
 export function createGameStore(pack: ContentPack, repository: SaveRepository, random: () => number = Math.random) {
   const loaded = repository.load();
   const wrongPack = loaded.save && loaded.save.contentPackId !== pack.manifest.id;
-  const initial = !wrongPack && loaded.save ? loaded.save : newGame(pack);
+  const previous = !wrongPack && loaded.save ? loaded.save : newGame(pack);
+  const normalizedOutfit = normalizeOutfit(previous, pack);
+  const repairedOutfit = Object.keys(normalizedOutfit).length !== Object.keys(previous.equippedOutfit).length;
+  const initial = { ...previous, equippedOutfit: normalizedOutfit };
   let writesEnabled = !wrongPack && !loaded.warning?.includes('原始存檔');
   let timer: ReturnType<typeof setTimeout> | undefined;
   const store = create<GameState>((set, get) => ({
-    pack, player: initial, screen: 'home', battle: null, result: null, notice: null, warning: wrongPack ? '存檔屬於其他內容包，原始存檔已保留。' : loaded.warning ?? null, saveStatus: writesEnabled ? 'saved' : 'error',
+    pack, player: initial, screen: 'home', battle: null, result: null, notice: null, warning: wrongPack ? '存檔屬於其他內容包，原始存檔已保留。' : loaded.warning ?? (repairedOutfit ? '部分裝扮無法使用，已還原預設外觀，收藏及其他進度仍保留。' : null), saveStatus: writesEnabled ? 'saved' : 'error',
     navigate: screen => set({ screen, battle: null, result: null, notice: null }),
     dismissWarning: () => set({ warning: null }),
+    equip: (slot, itemId) => {
+      if (get().screen !== 'wardrobe') return;
+      const result = equipOutfit(get().player, pack, slot, itemId);
+      set(result.ok ? { player: { ...result.player, updatedAt: new Date().toISOString() }, notice: result.message } : { notice: result.message });
+    },
     place: (placement, movingIndex = null) => {
       if (get().screen !== 'decor') return false;
       const result = placeFurniture(get().player, pack.items, placement, movingIndex);

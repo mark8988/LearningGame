@@ -50,8 +50,9 @@ describe('冒險狀態與結算', () => {
     const game = setup(); game.store.getState().startBattle(pack.units[0].id);
     while (game.store.getState().battle) { const b = game.store.getState().battle!; game.store.getState().answer(b.questions[b.index].answerIndex); game.store.getState().nextTurn(); }
     const result = game.store.getState().result!; expect(result.drops).toHaveLength(1); const id = result.drops[0].itemId;
-    expect(game.store.getState().player.inventory[id]).toBe(2); game.store.getState().nextTurn(); expect(game.store.getState().player.inventory[id]).toBe(2);
-    game.store.getState().navigate('home'); game.flush(); expect(game.saved()?.inventory[id]).toBe(2); game.dispose();
+    const expectedQuantity = (newGame(pack).inventory[id] ?? 0) + 1;
+    expect(game.store.getState().player.inventory[id]).toBe(expectedQuantity); game.store.getState().nextTurn(); expect(game.store.getState().player.inventory[id]).toBe(expectedQuantity);
+    game.store.getState().navigate('home'); game.flush(); expect(game.saved()?.inventory[id]).toBe(expectedQuantity); game.dispose();
   });
   it('只在佈置模式修改位置，擺放／移動／收回不消耗庫存或金幣', () => {
     const game = setup(); const position = { itemId: 'desk', x: 2, y: 2, rotation: 0 as const };
@@ -67,5 +68,15 @@ describe('冒險狀態與結算', () => {
     expect(game.store.getState().place({ itemId: 'desk', x: 11, y: 7, rotation: 0 })).toBe(false);
     expect(game.store.getState().notice).toContain('邊界'); expect(game.store.getState().player.roomLayout).toHaveLength(0);
     game.store.getState().removeFurniture(-1); expect(game.store.getState().player.roomLayout).toHaveLength(0); game.dispose();
+  });
+  it('衣櫃換裝自動保存，戰鬥中不得換裝或改變戰鬥數值', () => {
+    const initial = newGame(pack); initial.inventory['explorer-hat'] = 1; initial.ownedItemIds.push('explorer-hat'); const game = setup(initial);
+    game.store.getState().navigate('wardrobe'); game.store.getState().equip('hat', 'explorer-hat'); game.flush(); expect(game.saved()?.equippedOutfit.hat).toBe('explorer-hat');
+    game.store.getState().startBattle(pack.units[0].id); const hp = game.store.getState().battle!.playerHp; game.store.getState().equip('hat', null);
+    expect(game.store.getState().player.equippedOutfit.hat).toBe('explorer-hat'); expect(game.store.getState().battle!.playerHp).toBe(hp); expect(hp).toBe(100); game.dispose();
+  });
+  it('無效舊裝扮還原預設並提示，金幣與佈置保留', () => {
+    const initial = newGame(pack); initial.coins = 350; initial.equippedOutfit.hat = 'missing'; initial.roomLayout = [{ itemId: 'desk', x: 2, y: 2, rotation: 0 }]; const game = setup(initial);
+    expect(game.store.getState().player.equippedOutfit).toEqual({}); expect(game.store.getState().warning).toContain('預設外觀'); expect(game.store.getState().player.coins).toBe(350); expect(game.store.getState().player.roomLayout).toEqual(initial.roomLayout); game.dispose();
   });
 });

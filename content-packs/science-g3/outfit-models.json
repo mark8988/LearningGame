@@ -1,0 +1,122 @@
+[
+  {
+    "asset": "procedural:explorer-hat",
+    "slot": "hat",
+    "style": "cap",
+    "color": "#789266",
+    "accent": "#c6b079",
+    "anchor": [
+      0,
+      1.37,
+      0
+    ]
+  },
+  {
+    "asset": "procedural:leaf-scarf",
+    "slot": "accessory",
+    "style": "scarf",
+    "color": "#c19b5f",
+    "accent": "#e5cf96",
+    "anchor": [
+      0,
+      0.9,
+      0.03
+    ]
+  },
+  {
+    "asset": "procedural:ranger-top",
+    "slot": "top",
+    "style": "jacket",
+    "color": "#597d8e",
+    "accent": "#d8c58b",
+    "anchor": [
+      0,
+      0.61,
+      0
+    ]
+  },
+  {
+    "asset": "procedural:lantern",
+    "slot": "handheld",
+    "style": "lantern",
+    "color": "#ecd695",
+    "accent": "#6d8568",
+    "anchor": [
+      0.53,
+      0.35,
+      0.13
+    ]
+  },
+  {
+    "asset": "procedural:leaf-crown",
+    "slot": "hat",
+    "style": "crown",
+    "color": "#89a865",
+    "accent": "#d7bf72",
+    "anchor": [
+      0,
+      1.37,
+      0
+    ]
+  },
+  {
+    "asset": "procedural:feather-cap",
+    "slot": "hat",
+    "style": "feather",
+    "color": "#9a86a9",
+    "accent": "#e9dbb1",
+    "anchor": [
+      0,
+      1.37,
+      0
+    ]
+  },
+  {
+    "asset": "procedural:magnet-hat",
+    "slot": "hat",
+    "style": "magnet",
+    "color": "#ba7569",
+    "accent": "#7198ac",
+    "anchor": [
+      0,
+      1.37,
+      0
+    ]
+  },
+  {
+    "asset": "procedural:sunny-hair",
+    "slot": "hair",
+    "style": "hair",
+    "color": "#ac754f",
+    "accent": "#c28b61",
+    "anchor": [
+      0,
+      1.28,
+      -0.04
+    ]
+  },
+  {
+    "asset": "procedural:trail-trousers",
+    "slot": "bottom",
+    "style": "trousers",
+    "color": "#6d86a0",
+    "accent": "#4c6579",
+    "anchor": [
+      0,
+      0.33,
+      0
+    ]
+  },
+  {
+    "asset": "procedural:trail-boots",
+    "slot": "shoes",
+    "style": "boots",
+    "color": "#ad7b4f",
+    "accent": "#634f3e",
+    "anchor": [
+      0,
+      0.14,
+      0.03
+    ]
+  }
+]
