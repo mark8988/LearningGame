@@ -1,1 +1,37 @@
-[]
+[
+  {
+    "id": "first-adventure",
+    "name": "第一場自然冒險",
+    "metric": "battlesWon",
+    "target": 1,
+    "coins": 10
+  },
+  {
+    "id": "curious-100",
+    "name": "答對 100 題",
+    "metric": "correct",
+    "target": 100,
+    "rewardItemId": "knowledge-trophy"
+  },
+  {
+    "id": "cozy-ten",
+    "name": "佈置 10 件家具",
+    "metric": "placed",
+    "target": 10,
+    "rewardItemId": "decor-banner"
+  },
+  {
+    "id": "forest-five",
+    "name": "完成 5 場冒險",
+    "metric": "battlesWon",
+    "target": 5,
+    "coins": 100
+  },
+  {
+    "id": "collector-eighteen",
+    "name": "收藏 18 款道具",
+    "metric": "collection",
+    "target": 18,
+    "coins": 80
+  }
+]

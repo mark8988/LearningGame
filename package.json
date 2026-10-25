@@ -1,13 +1,14 @@
 {
   "name": "learning-adventure",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "private": true,
   "engines": { "node": ">=24.0.0" },
   "type": "module",
   "scripts": {
     "dev": "vite --host 127.0.0.1",
-    "build": "npm run check:assets && tsc -b && vite build",
+    "build": "npm run check:assets && npm run check:content && tsc -b && vite build",
     "check:assets": "node scripts/check-outfit-assets.mjs",
+    "check:content": "node scripts/check-content-pack.mjs",
     "preview": "vite preview --host 127.0.0.1",
     "test": "vitest run",
     "test:watch": "vitest",

@@ -24,7 +24,9 @@
       "sci-g3-u1-q12"
     ],
     "encyclopediaIds": [
-      "sci-g3-u1-e01"
+      "sci-g3-u1-e01",
+      "sci-g3-u1-e02",
+      "sci-g3-u1-e03"
     ],
     "dropTableId": "drops-u1"
   },
@@ -53,7 +55,9 @@
       "sci-g3-u2-q12"
     ],
     "encyclopediaIds": [
-      "sci-g3-u2-e01"
+      "sci-g3-u2-e01",
+      "sci-g3-u2-e02",
+      "sci-g3-u2-e03"
     ],
     "dropTableId": "drops-u2",
     "unlockAfter": "sci-g3-u1"
@@ -83,7 +87,9 @@
       "sci-g3-u3-q12"
     ],
     "encyclopediaIds": [
-      "sci-g3-u3-e01"
+      "sci-g3-u3-e01",
+      "sci-g3-u3-e02",
+      "sci-g3-u3-e03"
     ],
     "dropTableId": "drops-u3",
     "unlockAfter": "sci-g3-u2"
@@ -113,7 +119,9 @@
       "sci-g3-u4-q12"
     ],
     "encyclopediaIds": [
-      "sci-g3-u4-e01"
+      "sci-g3-u4-e01",
+      "sci-g3-u4-e02",
+      "sci-g3-u4-e03"
     ],
     "dropTableId": "drops-u4",
     "unlockAfter": "sci-g3-u3"
@@ -143,7 +151,9 @@
       "sci-g3-u5-q12"
     ],
     "encyclopediaIds": [
-      "sci-g3-u5-e01"
+      "sci-g3-u5-e01",
+      "sci-g3-u5-e02",
+      "sci-g3-u5-e03"
     ],
     "dropTableId": "drops-u5",
     "unlockAfter": "sci-g3-u4"

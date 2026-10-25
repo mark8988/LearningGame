@@ -247,5 +247,33 @@
       "drop"
     ],
     "outfitSlot": "shoes"
+  },
+  {
+    "id": "knowledge-trophy",
+    "name": "百題知識獎盃",
+    "kind": "furniture",
+    "rarity": "epic",
+    "price": 0,
+    "asset": "procedural:knowledge-trophy",
+    "obtainFrom": [
+      "achievement"
+    ],
+    "gridW": 1,
+    "gridH": 1,
+    "layer": 1
+  },
+  {
+    "id": "decor-banner",
+    "name": "佈置達人旗",
+    "kind": "furniture",
+    "rarity": "rare",
+    "price": 0,
+    "asset": "procedural:decor-banner",
+    "obtainFrom": [
+      "achievement"
+    ],
+    "gridW": 2,
+    "gridH": 1,
+    "layer": 1
   }
 ]

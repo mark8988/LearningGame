@@ -8,8 +8,8 @@ export const itemSchema = z.object({ id, kind: z.enum(['furniture', 'outfit']), 
   if (item.kind === 'outfit' && !item.outfitSlot) ctx.addIssue({ code: 'custom', path: ['outfitSlot'], message: '裝扮必須提供 outfitSlot' });
 });
 export const manifestSchema = z.object({ id, name: id, version: id, subject: id, grade: z.number().int().min(1).max(12), unitIds: z.array(id).min(1), demo: z.boolean() });
-export const encyclopediaSchema = z.object({ id, unitId: id, title: id, text: id });
-export const achievementSchema = z.object({ id, name: id, metric: z.enum(['correct', 'battlesWon', 'collection', 'placed']), target: z.number().int().positive(), rewardItemId: id.optional(), coins: z.number().int().nonnegative().optional() });
+export const encyclopediaSchema = z.object({ id, unitId: id, title: id, text: id, illustration: z.enum(['plant', 'animal', 'weather', 'magnet', 'water']) });
+export const achievementSchema = z.object({ id, name: id, metric: z.enum(['correct', 'battlesWon', 'collection', 'placed']), target: z.number().int().positive(), rewardItemId: id.optional(), coins: z.number().int().nonnegative().optional() }).refine(value => !!value.rewardItemId || (value.coins ?? 0) > 0, { message: '成就必須提供道具或金幣獎勵' });
 export type Question = z.infer<typeof questionSchema>;
 export type Unit = z.infer<typeof unitSchema>;
 export type CosmeticItem = z.infer<typeof itemSchema>;

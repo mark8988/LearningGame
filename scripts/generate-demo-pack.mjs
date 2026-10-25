@@ -73,7 +73,7 @@ const groups = [
     ['比較攪拌對溶解的影響，應保持什麼相同？', '水量、水溫與砂糖量', '只有杯子名字', '只有觀察者衣服', '只有桌子顏色', '只改變是否攪拌，保持其他條件相同，才能公平比較。'],
   ]],
 ];
-const units = groups.map(([name, boss, theme], i) => ({ id: `sci-g3-u${i + 1}`, name, order: i + 1, boss: { name: boss, asset: `procedural:${theme}`, hp: 145 + i * 10, attack: 22 + i * 2 }, questionPool: Array.from({ length: 12 }, (_, j) => `sci-g3-u${i + 1}-q${String(j + 1).padStart(2, '0')}`), encyclopediaIds: [`sci-g3-u${i + 1}-e01`], dropTableId: `drops-u${i + 1}`, ...(i ? { unlockAfter: `sci-g3-u${i}` } : {}) }));
+const units = groups.map(([name, boss, theme], i) => ({ id: `sci-g3-u${i + 1}`, name, order: i + 1, boss: { name: boss, asset: `procedural:${theme}`, hp: 145 + i * 10, attack: 22 + i * 2 }, questionPool: Array.from({ length: 12 }, (_, j) => `sci-g3-u${i + 1}-q${String(j + 1).padStart(2, '0')}`), encyclopediaIds: Array.from({ length: 3 }, (_, j) => `sci-g3-u${i + 1}-e0${j + 1}`), dropTableId: `drops-u${i + 1}`, ...(i ? { unlockAfter: `sci-g3-u${i}` } : {}) }));
 const questions = groups.flatMap(([, , , rows], i) => rows.map(([stem, answer, b, c, d, explanation], j) => {
   const options = [b, c, d]; const answerIndex = j % 4; options.splice(answerIndex, 0, answer);
   return { id: units[i].questionPool[j], unitId: units[i].id, stem, options, answerIndex, explanation, difficulty: j < 4 ? 1 : j < 10 ? 2 : 3 };
@@ -87,6 +87,22 @@ items.push(outfit('sunny-hair', '暖栗短髮', 'common', 80, 'hair'), outfit('t
 const anchors = { hair: [0, 1.28, -0.04], top: [0, 0.61, 0], bottom: [0, 0.33, 0], shoes: [0, 0.14, 0.03], hat: [0, 1.37, 0], accessory: [0, 0.9, 0.03], handheld: [0.53, 0.35, 0.13] };
 const models = [['explorer-hat', 'hat', 'cap', '#789266', '#c6b079'], ['leaf-scarf', 'accessory', 'scarf', '#c19b5f', '#e5cf96'], ['ranger-top', 'top', 'jacket', '#597d8e', '#d8c58b'], ['lantern', 'handheld', 'lantern', '#ecd695', '#6d8568'], ['leaf-crown', 'hat', 'crown', '#89a865', '#d7bf72'], ['feather-cap', 'hat', 'feather', '#9a86a9', '#e9dbb1'], ['magnet-hat', 'hat', 'magnet', '#ba7569', '#7198ac'], ['sunny-hair', 'hair', 'hair', '#ac754f', '#c28b61'], ['trail-trousers', 'bottom', 'trousers', '#6d86a0', '#4c6579'], ['trail-boots', 'shoes', 'boots', '#ad7b4f', '#634f3e']].map(([id, slot, style, color, accent]) => ({ asset: `procedural:${id}`, slot, style, color, accent, anchor: anchors[slot] }));
 const drops = units.map((unit, i) => ({ id: unit.dropTableId, common: ['bed', 'desk', 'chair', 'rug', 'explorer-hat', 'leaf-scarf', 'sunny-hair', 'trail-trousers', 'trail-boots'], rare: ['ranger-top', 'lantern', 'bookshelf', 'telescope'], epic: [epics[i]] }));
-const files = { 'pack.json': { id: 'science-g3', name: '國小三年級・自然探險', version: '0.4.0', subject: '自然', grade: 3, unitIds: units.map(u => u.id), demo: true }, 'units.json': units, 'questions.json': questions, 'items.json': items, 'outfit-models.json': models, 'drops.json': drops, 'encyclopedia.json': groups.map(([name, , , rows], i) => ({ id: units[i].encyclopediaIds[0], unitId: units[i].id, title: name, text: rows[0][5] })), 'achievements.json': [] };
+items.push({ ...furniture('knowledge-trophy', '百題知識獎盃', 'epic', 0, 1, 1), obtainFrom: ['achievement'] }, { ...furniture('decor-banner', '佈置達人旗', 'rare', 0, 2, 1), obtainFrom: ['achievement'] });
+const knowledge = [
+  [['根、莖、葉的合作', '根吸收土壤中的水分和養分，莖支撐植物並運送水分，葉片利用陽光製造養分。觀察一株植物時，可以先找出這三個部位，再記錄它們的形狀與位置。'], ['葉片的小廚房', '植物的綠色葉片能利用陽光、水和二氧化碳進行光合作用，製造生長需要的養分。葉脈除了形成不同花紋，也與水分和養分的運送有關。'], ['種子的旅行', '果實能保護種子，有些還能幫助種子傳播。蒲公英的果實有像降落傘的冠毛，容易隨風飄走；有些植物則靠動物攜帶種子。觀察時拍照記錄，不隨意拔起植物。']],
+  [['從身體構造認識動物', '鳥類有羽毛，魚用鰓從水中取得氧氣，哺乳類以乳汁哺育幼兒。分類要比較身體特徵，不能只看生活的地方：鯨魚住在海裡，仍是哺乳類。'], ['六隻腳與八隻腳', '昆蟲有三對腳，身體分為頭、胸、腹，蝴蝶就是昆蟲。蜘蛛有四對腳，共八隻，並不是昆蟲。數腳之前，先觀察完整的身體，避免把觸角也算成腳。'], ['成長與不打擾的觀察', '蝴蝶會經歷卵、幼蟲、蛹、成蟲；青蛙的幼體叫蝌蚪，成長後逐漸長出腳。觀察野生動物時保持距離、不追趕、不亂餵食，讓牠們安心生活。']],
+  [['氣溫要怎麼量？', '測量氣溫時，將溫度計放在通風陰涼處，避開陽光直射與熱源。讀取液柱溫度計時，視線與液柱頂端同高，可減少讀取誤差。臺灣常用攝氏度（°C）記錄氣溫。'], ['記下雨與風', '雨量筒放在平坦、上方沒有遮蔽物的地方，收集一段時間的降雨。風向標可幫助辨認風吹來的方向；北風是從北方吹來的風，不是往北方吹去。'], ['每天觀測，公平比較', '比較一週的天氣，可以每天在固定時間、固定地點記錄氣溫、雲量、風和雨。看見閃電或聽到雷聲時，進入安全室內，避開空曠處、大樹下與水域。']],
+  [['磁鐵會吸住什麼？', '一般磁鐵能吸引鐵製迴紋針和鐵釘，但不是所有金屬都會被吸引。可以逐一測試塑膠尺、木筷、鐵釘等物品，把結果記錄下來，不能只看顏色或光澤猜答案。'], ['同極相斥、異極相吸', '磁鐵有兩個磁極，同極靠近會排斥，異極靠近會吸引。條形磁鐵的兩端通常磁力較強；隔著薄紙，磁鐵仍可能吸住鐵製物品。指南針也利用磁針受地球磁場影響的特性。'], ['推、拉與改變', '推與拉都是施力。力可能改變物體的速度、方向或形狀，例如推球能讓它轉向，按壓黏土能改變形狀。比較施力效果時，盡量讓其他條件相同，再觀察差異。']],
+  [['水的三種樣子', '冰是固態水，杯中的水是液態，看不見的水蒸氣是氣態。冰融化成水，水凝固成冰；水蒸發形成水蒸氣，水蒸氣遇冷可凝結成水珠。這些變化仍然都是水。'], ['溶解了，仍然存在', '少量食鹽或砂糖能溶解在水中，看不見不代表物質消失。小石頭通常不容易溶解。一定溫度和水量下，食鹽能溶解的量有上限，不會一直無限溶下去。'], ['做一次公平的小實驗', '比較攪拌對砂糖溶解速度的影響時，保持水量、水溫和砂糖量相同，只改變是否攪拌。攪拌能幫助較快溶解。需要加熱的實驗應由大人協助，避免熱水與蒸氣燙傷。']],
+];
+const encyclopedia = knowledge.flatMap((entries, i) => entries.map(([title, text], j) => ({ id: units[i].encyclopediaIds[j], unitId: units[i].id, title, text, illustration: groups[i][2] })));
+const achievements = [
+  { id: 'first-adventure', name: '第一場自然冒險', metric: 'battlesWon', target: 1, coins: 10 },
+  { id: 'curious-100', name: '答對 100 題', metric: 'correct', target: 100, rewardItemId: 'knowledge-trophy' },
+  { id: 'cozy-ten', name: '佈置 10 件家具', metric: 'placed', target: 10, rewardItemId: 'decor-banner' },
+  { id: 'forest-five', name: '完成 5 場冒險', metric: 'battlesWon', target: 5, coins: 100 },
+  { id: 'collector-eighteen', name: '收藏 18 款道具', metric: 'collection', target: 18, coins: 80 },
+];
+const files = { 'pack.json': { id: 'science-g3', name: '國小三年級・自然探險', version: '0.5.0', subject: '自然', grade: 3, unitIds: units.map(u => u.id), demo: true }, 'units.json': units, 'questions.json': questions, 'items.json': items, 'outfit-models.json': models, 'drops.json': drops, 'encyclopedia.json': encyclopedia, 'achievements.json': achievements };
 for (const [file, value] of Object.entries(files)) writeFileSync(new URL(file, directory), JSON.stringify(value, null, 2) + '\n');
 console.log(`Demo pack: ${units.length} units, ${questions.length} questions`);

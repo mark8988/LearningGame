@@ -20,8 +20,8 @@ describe('冒險狀態與結算', () => {
   it('通關結算只發一次，解鎖下一關並持久保存', () => {
     const game = setup(); game.store.getState().startBattle(pack.units[0].id);
     while (game.store.getState().battle) { const b = game.store.getState().battle!; game.store.getState().answer(b.questions[b.index].answerIndex); game.store.getState().nextTurn(); }
-    const state = game.store.getState(); expect(state.result?.won).toBe(true); expect(state.player.coins).toBe(225); expect(state.player.xp).toBe(140); expect(state.player.unitStars[pack.units[0].id]).toBe(3); expect(state.player.clearedUnitIds).toContain(pack.units[0].id);
-    state.nextTurn(); expect(game.store.getState().player.coins).toBe(225); game.flush(); expect(game.saved()?.coins).toBe(225); game.dispose();
+    const state = game.store.getState(); expect(state.result?.won).toBe(true); expect(state.result?.coins).toBe(225); expect(state.player.coins).toBe(235); expect(state.player.unlockedAchievementIds).toContain('first-adventure'); expect(state.player.xp).toBe(140); expect(state.player.unitStars[pack.units[0].id]).toBe(3); expect(state.player.clearedUnitIds).toContain(pack.units[0].id);
+    state.nextTurn(); expect(game.store.getState().player.coins).toBe(235); game.flush(); expect(game.saved()?.coins).toBe(235); game.dispose();
   });
   it('失敗不扣已有獎勵，下次戰鬥恢復生命', () => {
     const initial = newGame(pack); initial.coins = 200; const game = setup(initial); game.store.getState().startBattle(pack.units[0].id);
@@ -78,5 +78,22 @@ describe('冒險狀態與結算', () => {
   it('無效舊裝扮還原預設並提示，金幣與佈置保留', () => {
     const initial = newGame(pack); initial.coins = 350; initial.equippedOutfit.hat = 'missing'; initial.roomLayout = [{ itemId: 'desk', x: 2, y: 2, rotation: 0 }]; const game = setup(initial);
     expect(game.store.getState().player.equippedOutfit).toEqual({}); expect(game.store.getState().warning).toContain('預設外觀'); expect(game.store.getState().player.coins).toBe(350); expect(game.store.getState().player.roomLayout).toEqual(initial.roomLayout); game.dispose();
+  });
+  it('知識閱讀受通關限制，已讀紀錄不重複且能保存', () => {
+    const initial = newGame(pack); initial.clearedUnitIds = [pack.units[0].id]; const game = setup(initial); game.store.getState().navigate('dex');
+    game.store.getState().readEntry(pack.units[1].encyclopediaIds[0]); expect(game.store.getState().player.readEncyclopediaIds).toEqual([]);
+    const id = pack.units[0].encyclopediaIds[0]; game.store.getState().readEntry(id); game.store.getState().readEntry(id); game.flush(); expect(game.saved()?.readEncyclopediaIds).toEqual([id]); game.dispose();
+  });
+  it('複習防連點、答對移除後不能重刷，100 題成就同時入庫並保存', () => {
+    const initial = newGame(pack); initial.stats = { ...initial.stats, correct: 99, questionsAnswered: 99 }; initial.wrongQuestionIds = [pack.questions[0].id]; initial.xp = 345; const game = setup(initial);
+    game.store.getState().startReview(); game.store.getState().reviewAnswer(pack.questions[0].answerIndex); game.store.getState().reviewAnswer(pack.questions[0].answerIndex);
+    expect(game.store.getState().player.coins).toBe(2); expect(game.store.getState().player.xp).toBe(345); expect(game.store.getState().player.inventory['knowledge-trophy']).toBe(1); expect(game.store.getState().player.stats.correct).toBe(100);
+    game.store.getState().nextReview(); expect(game.store.getState().review?.done).toBe(true); game.store.getState().startReview(); expect(game.store.getState().review?.questions).toEqual([]); game.flush();
+    const restored = setup(game.saved()); expect(restored.store.getState().achievementQueue).toEqual([]); expect(restored.store.getState().player.inventory['knowledge-trophy']).toBe(1); restored.dispose(); game.dispose();
+  });
+  it('舊存檔補發已達成成就，刷新後不重複給金幣或獎品', () => {
+    const initial = newGame(pack); initial.stats.correct = 100; initial.stats.questionsAnswered = 100; initial.stats.battlesWon = 1; initial.coins = 25; initial.updatedAt = '2000-01-01T00:00:00.000Z'; const game = setup(initial);
+    expect(game.store.getState().player.coins).toBe(35); expect(game.store.getState().player.inventory['knowledge-trophy']).toBe(1); expect(game.saved()?.unlockedAchievementIds).toContain('curious-100'); expect(game.saved()?.updatedAt).not.toBe(initial.updatedAt);
+    const restored = setup(game.saved()); expect(restored.store.getState().player.coins).toBe(35); expect(restored.store.getState().achievementQueue).toEqual([]); restored.dispose(); game.dispose();
   });
 });

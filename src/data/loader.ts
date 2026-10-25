@@ -64,7 +64,9 @@ export function validatePack(files: Record<string, unknown>): ContentPack {
     if (u.unlockAfter && (!units.has(u.unlockAfter) || pack.units.find(v => v.id === u.unlockAfter)!.order >= u.order)) throw new Error(`units.json：${i}.unlockAfter 必須指向前一單元`);
   });
   pack.questions.forEach((q, i) => { if (!units.has(q.unitId)) throw new Error(`questions.json：${i}.unitId 找不到 ${q.unitId}`); });
+  pack.encyclopedia.forEach((entry, i) => { const unit = pack.units.find(unit => unit.id === entry.unitId); if (!unit || !unit.encyclopediaIds.includes(entry.id)) throw new Error(`encyclopedia.json：${i}.unitId 條目必須引用單元並列於 encyclopediaIds`); });
   pack.achievements.forEach((a, i) => { if (a.rewardItemId && !pack.items.some(item => item.id === a.rewardItemId)) throw new Error(`achievements.json：${i}.rewardItemId 找不到道具`); });
+  pack.achievements.forEach((a, i) => { if (a.rewardItemId && !pack.items.find(item => item.id === a.rewardItemId)!.obtainFrom.includes('achievement')) throw new Error(`achievements.json：${i}.rewardItemId 道具必須允許成就取得`); });
   return pack;
 }
 

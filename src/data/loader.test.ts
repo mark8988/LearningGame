@@ -16,4 +16,6 @@ describe('內容包驗證', () => {
   it('拒絕超出定價帶的商店價格', () => { const input = files(); input['items.json'][0].price = 0; expect(() => validatePack(input)).toThrow(/items.json：0.price/); });
   it('拒絕缺失的裝扮模型', () => { const input = files(); input['outfit-models.json'] = []; expect(() => validatePack(input)).toThrow(/缺少對應部位的 3D 裝扮模型/); });
   it('拒絕錯誤的模型錨點或部位樣式', () => { const input = files(); input['outfit-models.json'][0].anchor[1] = 5; expect(() => validatePack(input)).toThrow(/outfit-models.json：0.anchor/); });
+  it('拒絕沒有對應單元的知識條目', () => { const input = files(); input['encyclopedia.json'].push({ ...input['encyclopedia.json'][0], id: 'orphan', unitId: 'missing' }); expect(() => validatePack(input)).toThrow(/encyclopedia.json：.*unitId/); });
+  it('拒絕無法取得的成就獎品', () => { const input = files(); input['achievements.json'][1].rewardItemId = 'explorer-hat'; expect(() => validatePack(input)).toThrow(/rewardItemId 道具必須允許成就取得/); });
 });

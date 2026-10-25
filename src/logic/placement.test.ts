@@ -47,13 +47,14 @@ describe('房間格子與庫存', () => {
 describe('收藏與畫面座標', () => {
   it('收藏率以家具款式計算，不計服裝或重複數量', () => {
     const player = newGame(pack); player.inventory.desk = 9; player.inventory['explorer-hat'] = 1;
-    expect(collectionStats(player, pack.items)).toEqual({ owned: 4, total: 8, percent: 50, placed: 0, title: '溫馨新手' });
+    const total = pack.items.filter(item => item.kind === 'furniture').length;
+    expect(collectionStats(player, pack.items)).toEqual({ owned: 4, total, percent: Math.round(400 / total), placed: 0, title: '溫馨新手' });
     expect(collectionStats(player, [])).toMatchObject({ percent: 0, total: 0 });
   });
   it('稱號綜合已擺放數與收藏率', () => {
     const player = newGame(pack); player.roomLayout = Array.from({ length: 10 }, (_, x) => ({ itemId: 'chair', x, y: 0, rotation: 0 }));
-    expect(collectionStats(player, pack.items).title).toBe('森林設計師');
-    player.inventory.bookshelf = 1; player.inventory.telescope = 1; expect(collectionStats(player, pack.items).title).toBe('佈置大師');
+    player.inventory.bookshelf = 1; expect(collectionStats(player, pack.items).title).toBe('森林設計師');
+    player.inventory.telescope = 1; player.inventory['knowledge-trophy'] = 1; player.inventory['decor-banner'] = 1; expect(collectionStats(player, pack.items).title).toBe('佈置大師');
     player.roomLayout = player.roomLayout.slice(0, 3); expect(collectionStats(player, pack.items).title).toBe('溫馨巧手');
   });
   it('等角投影正反變換對應滑鼠／觸控落點，含格子外座標', () => {
