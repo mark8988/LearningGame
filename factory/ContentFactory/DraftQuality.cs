@@ -12,7 +12,7 @@ public static class DraftQuality
     public static int ChoicePosition(int slot) => Enumerable.Range(0, slot).Count(s => !IsBlankSlot(s)) % 4;
     public static readonly string[] Illustrations = ["plant", "animal", "weather", "magnet", "water"];
     public static string Normalize(string value) => Regex.Replace((value ?? "").Normalize(NormalizationForm.FormKC), @"\s+", "");
-    public static string StemKey(string value) => Regex.Replace(Normalize(value), @"[\p{P}\p{S}]", "");
+    public static string StemKey(string value) => Normalize(value).TrimEnd('。', '？', '！', '?', '!');
     public static string Fingerprint(SourceDocument source) => Convert.ToHexString(SHA256.HashData(JsonSerializer.SerializeToUtf8Bytes(new { source.Id, source.Pages, source.Units, source.Classification, source.Confirmation, source.CoverPage, source.TocPage }, FactoryJson.Options)));
     public static void RequireSource(SourceDocument source)
     {
@@ -73,9 +73,24 @@ public static class DraftQuality
         if (batch.Entries.Any(e => e.Id != ignoreId && StemKey(e.Content.Title) == StemKey(content.Title))) errors.Add("知識標題不可重複。");
         errors.AddRange(Citation(content.SourceRef, batch)); return errors.Distinct().ToArray();
     }
-    public static string[] SetErrors(IEnumerable<QuestionDraft> questions)
+    public static string[] SetErrors(IEnumerable<QuestionDraft> questions, DraftBatch? batch = null)
     {
         var all = questions.ToArray(); var errors = new List<string>();
+        if (batch?.Plan is { } plan)
+        {
+            var targets = plan.Targets.Where(t => !batch.SkippedQuestions.ContainsKey(t.Slot)).ToArray();
+            if (all.Length == 0) errors.Add("至少需要一題有來源支持且已核准的題目。");
+            if (all.Length != targets.Length || !all.Select(q => q.Slot).Order().SequenceEqual(targets.Select(t => t.Slot).Order())) errors.Add("請完成所有未略過考點的產題及人工核准。");
+            foreach (var q in all)
+            {
+                var target = targets.SingleOrDefault(t => t.Slot == q.Slot);
+                if (target is null || q.Content.Type != target.Type) errors.Add("題型需符合這批教材的產題規劃。");
+            }
+            var choices = all.Where(q => q.Content.Type == "choice").ToArray();
+            var counts = Enumerable.Range(0, 4).Select(i => choices.Count(q => q.Content.AnswerIndex == i)).ToArray();
+            if (counts.Max() - counts.Min() > 1) errors.Add("選擇題正解位置須平均分配，各選項題數差不超過一題。");
+            return errors.Distinct().ToArray();
+        }
         if (all.Length < 12) errors.Add("每單元至少需要 12 題。");
         if (all.Length > 0)
         {
@@ -91,7 +106,8 @@ public static class DraftQuality
         var errors = new List<string>();
         if (batch.Status != BatchStatus.Review) errors.Add("請等待草稿產生完成。");
         var questions = batch.Questions.Where(q => q.Status == ReviewStatus.Approved).ToArray(); var entries = batch.Entries.Where(e => e.Status == ReviewStatus.Approved).ToArray();
-        errors.AddRange(SetErrors(questions)); if (entries.Length is < 2 or > 3) errors.Add("每單元需要 2–3 篇已核准知識條目。");
+        errors.AddRange(SetErrors(questions, batch)); var minimumEntries = Math.Min(2, QuestionPlanning.For(batch).EntryCount);
+        if (entries.Length < minimumEntries || entries.Length > 3) errors.Add($"此單元需要 {minimumEntries}–3 篇已核准知識條目。");
         foreach (var question in questions) errors.AddRange(Question(question.Content, batch, question.Id));
         foreach (var entry in entries) errors.AddRange(Entry(entry.Content, batch, entry.Id));
         return errors.Distinct().ToArray();

@@ -11,6 +11,13 @@ function setup(initial: PlayerSave | null = null) {
 }
 afterEach(() => vi.useRealTimers());
 describe('冒險狀態與結算', () => {
+  it('短單元按題庫大小抽題並調整Boss生命，全對仍可通關', () => {
+    const short = structuredClone(pack); short.units[0].questionPool = short.units[0].questionPool.slice(0, 2);
+    const game = createGameStore(short, { load: () => ({ save: null }), save: () => {} }, () => 0.5);
+    game.store.getState().startBattle(short.units[0].id); expect(game.store.getState().battle!.questions).toHaveLength(2); expect(game.store.getState().battle!.bossHp).toBeLessThan(short.units[0].boss.hp);
+    while (game.store.getState().battle) { const b = game.store.getState().battle!; game.store.getState().answer(b.questions[b.index].answerIndex); game.store.getState().nextTurn(); }
+    expect(game.store.getState().result!.won).toBe(true); expect(short.units[0].boss.hp).toBe(pack.units[0].boss.hp); game.dispose();
+  });
   it('未通過家長驗證不可進入或還原，離開後上鎖', () => { const game = setup(); const save = newGame(pack); game.store.getState().navigate('parent'); expect(game.store.getState().screen).toBe('home'); expect(() => game.store.getState().replaceProgress(save)).toThrow('家長驗證'); game.store.getState().authorizeParent(); expect(game.store.getState().screen).toBe('parent'); game.store.getState().navigate('home'); expect(game.store.getState().parentUnlocked).toBe(false); game.dispose(); });
   it('還原先驗證再保存並清除舊戰鬥，未完成的 debounce 不會蓋回舊進度', () => { vi.useFakeTimers(); const game = setup(); game.store.getState().startBattle(pack.units[0].id); const q = game.store.getState().battle!.questions[0]; game.store.getState().answer(q.answerIndex); const save = newGame(pack); save.coins = 123; game.store.getState().authorizeParent(); game.store.getState().replaceProgress(save); expect(game.store.getState().battle).toBeNull(); vi.advanceTimersByTime(1000); expect(game.saved()?.coins).toBe(123); expect(game.store.getState().player.xp).toBe(0); game.dispose(); });
   it('還原儲存失敗保留記憶體進度，不發布成功訊息', () => { const game = setup(); game.store.getState().authorizeParent(); const before = game.store.getState().player; vi.mocked(game.repository.save).mockImplementationOnce(() => { throw new Error('QuotaExceeded'); }); const save = newGame(pack); save.coins = 900; expect(() => game.store.getState().replaceProgress(save)).toThrow('QuotaExceeded'); expect(game.store.getState().player).toBe(before); game.dispose(); });

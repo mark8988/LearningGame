@@ -16,7 +16,6 @@ export function importPack(raw: string) {
   const data = readTransfer(raw) as { format?: string; version?: number; files?: Record<string, unknown> } | null;
   if (!data || data.format !== 'learning-adventure:pack' || data.version !== 1 || !data.files) throw new Error('請選擇版本 1 的題庫備份。');
   const pack = validatePack(data.files);
-  for (const unit of pack.units) if (unit.questionPool.length < 12) throw new Error(`${unit.name} 至少需要 12 題。`);
   return pack;
 }
 export function validateProgress(input: unknown, pack: ContentPack): PlayerSave {

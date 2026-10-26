@@ -43,7 +43,7 @@ app.Use(async (context, next) =>
     }
 });
 app.UseDefaultFiles(); app.UseStaticFiles();
-app.MapGet("/api/health", () => new { version = "0.8.0", mode = "local", ocrProvider = options.OcrProvider, classificationProvider = options.ClassificationProvider, ocrReady = options.OcrProvider == "Azure" ? !string.IsNullOrEmpty(options.AzureKey) : File.Exists(Path.Combine(options.TessdataDirectory, "chi_tra.traineddata")) && File.Exists(Path.Combine(options.TessdataDirectory, "eng.traineddata")), maxUploadBytes = FactoryOptions.MaxUploadBytes, schools = Curriculum.Schools, subjects = Curriculum.Subjects });
+app.MapGet("/api/health", () => new { version = "0.9.0", mode = "local", ocrProvider = options.OcrProvider, classificationProvider = options.ClassificationProvider, ocrReady = options.OcrProvider == "Azure" ? !string.IsNullOrEmpty(options.AzureKey) : File.Exists(Path.Combine(options.TessdataDirectory, "chi_tra.traineddata")) && File.Exists(Path.Combine(options.TessdataDirectory, "eng.traineddata")), maxUploadBytes = FactoryOptions.MaxUploadBytes, schools = Curriculum.Schools, subjects = Curriculum.Subjects });
 app.MapGet("/api/documents", (DocumentStore store) => store.List().Select(d => new { d.Id, d.Title, d.Status, d.Progress, d.Message, d.CreatedAt, d.UpdatedAt }));
 app.MapGet("/api/documents/{id:guid}", (Guid id, DocumentStore store) => store.Get(id));
 app.MapPost("/api/documents", async (HttpRequest request, DocumentStore store, JobQueue queue, CancellationToken token) =>

@@ -57,24 +57,28 @@ public sealed class GenerationWorker(DraftStore drafts, DocumentStore documents,
         }
         else
         {
-            for (var group = 0; group < 3; group++)
+            var plan = QuestionPlanning.For(initial);
+            foreach (var target in plan.Targets)
             {
-                var slots = Enumerable.Range(group * 4, 4).ToArray(); var current = Current(id);
-                if (slots.All(s => current.Questions.Any(q => q.Slot == s))) continue;
-                foreach (var slot in slots)
+                var slot = target.Slot; var current = Current(id);
+                if (current.Questions.Any(q => q.Slot == slot) || current.SkippedQuestions.ContainsKey(slot)) continue;
+                try
                 {
-                    if (Current(id).Questions.Any(q => q.Slot == slot)) continue;
-                    var result = await Questions(id, [slot], token, group); Current(id);
-                    drafts.Update(id, b => { b.Questions.Add(new QuestionDraft { Slot = slot, Content = result[0] }); b.Progress = b.Questions.Count * 6; b.Message = $"已建立 {b.Questions.Count} / 12 題草稿"; });
+                    var result = await Questions(id, [slot], token); Current(id);
+                    drafts.Update(id, b => b.Questions.Add(new QuestionDraft { Slot = slot, Content = result[0] }));
                 }
+                catch (InsufficientQuestionMaterialException) when (initial.Plan is not null)
+                { drafts.Update(id, b => b.SkippedQuestions[slot] = "模型判定此考點不足以再出一道有來源支持的題目，未硬湊題數。"); }
+                drafts.Update(id, b => { b.Progress = (b.Questions.Count + b.SkippedQuestions.Count) * 80 / plan.QuestionCount; b.Message = $"已建立 {b.Questions.Count} 題／預估 {plan.QuestionCount} 題，略過 {b.SkippedQuestions.Count} 題"; });
             }
-            if (Current(id).Entries.Count < 3)
+            if (Current(id).Questions.Count == 0) throw new FactoryException("目前教材未能產生有來源支持的題目，請補充內容。");
+            if (Current(id).Entries.Count < plan.EntryCount)
             {
-                var entries = await Entries(id, 3, token); Current(id);
+                var entries = await Entries(id, plan.EntryCount, token); Current(id);
                 drafts.Update(id, b => { b.Entries = entries.Select((content, index) => new EntryDraft { Slot = index, Content = content }).ToList(); });
             }
         }
-        Current(id); drafts.Update(id, b => { b.Status = BatchStatus.Review; b.Progress = 100; b.Message = "草稿已建立，請逐題對照來源並審核"; b.PendingItemId = null; b.PendingKind = null; b.Instruction = ""; });
+        Current(id); drafts.Update(id, b => { QuestionPlanning.BalanceChoices(b); b.Status = BatchStatus.Review; b.Progress = 100; b.Message = "草稿已建立，請逐題對照來源並審核"; b.PendingItemId = null; b.PendingKind = null; b.Instruction = ""; });
     }
     private async Task<QuestionContent[]> Questions(Guid id, int[] slots, CancellationToken token, int group = -1)
     {
@@ -84,17 +88,18 @@ public sealed class GenerationWorker(DraftStore drafts, DocumentStore documents,
             var batch = Current(id); var prompt = GenerationPrompts.Questions(batch, slots, errors, batch.Instruction, group); string raw = "";
             try
             {
-                var output = await provider.Generate(batch.Model, prompt, GenerationPrompts.Schema(false, slots.Length, slots[0]), token); raw = output.Raw;
-                if (output.Data.GetProperty("insufficientMaterial").GetBoolean()) { drafts.SaveAttempt(id, "insufficient", prompt, raw, ["來源文字不足"]); throw new FactoryException("模型判定來源文字不足，請補充教材或縮小單元，不會硬湊題數。"); }
+                var output = await provider.Generate(batch.Model, prompt, GenerationPrompts.Schema(false, slots.Length, slots[0], batch), token); raw = output.Raw;
+                if (output.Data.GetProperty("insufficientMaterial").GetBoolean()) { drafts.SaveAttempt(id, "insufficient", prompt, raw, ["來源文字不足"]); throw new InsufficientQuestionMaterialException(); }
                 var questions = output.Data.GetProperty("questions").EnumerateArray().Select(q => GenerationPrompts.Question(q, batch.DocumentId)).ToArray();
                 var issues = new List<string>(); if (questions.Length != slots.Length) issues.Add($"本次需要 {slots.Length} 題。");
                 for (var i = 0; i < questions.Length && i < slots.Length; i++)
                 {
                     var existing = batch.Questions.SingleOrDefault(q => q.Slot == slots[i]);
-                    if (questions[i].Type != (DraftQuality.IsBlankSlot(slots[i]) ? "fillBlank" : "choice")) issues.Add($"第{slots[i]+1}題型不符，請依指定選擇／填空題型產生。");
+                    var target = QuestionPlanning.Target(batch, slots[i]);
+                    if (questions[i].Type != target.Type) issues.Add($"第{slots[i]+1}題型不符，請依指定選擇／填空題型產生。");
                     issues.AddRange(DraftQuality.Question(questions[i], batch, existing?.Id));
-                    if (questions[i].Type == "choice" && questions[i].AnswerIndex != DraftQuality.ChoicePosition(slots[i])) issues.Add($"第{slots[i] + 1}題的answerIndex需為{DraftQuality.ChoicePosition(slots[i])}，請重新產生符合分佈的題目。");
-                    if (questions[i].Difficulty != DraftQuality.Difficulties[slots[i]]) issues.Add($"第{slots[i] + 1}題的難度需為{DraftQuality.Difficulties[slots[i]]}。");
+                    if (questions[i].Type == "choice" && questions[i].AnswerIndex != target.AnswerIndex) issues.Add($"第{slots[i] + 1}題的answerIndex需為{target.AnswerIndex}。");
+                    if (questions[i].Difficulty != target.Difficulty) issues.Add($"第{slots[i] + 1}題的難度需為{target.Difficulty}。");
                 }
                 if (questions.Select(q => DraftQuality.StemKey(q.Stem)).Distinct().Count() != questions.Length) issues.Add("本次題目中有重複題幹。");
                 drafts.SaveAttempt(id, "questions", prompt, raw, issues.ToArray());

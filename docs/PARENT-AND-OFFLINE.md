@@ -12,7 +12,7 @@
 2. 在另一瀏覽器開啟遊戲，通過家長驗證，加入題庫 JSON，確認後切換至該題庫。
 3. 匯入存檔，檢視金幣、作答數與關卡摘要，再確認取代。
 
-題庫檔格式為 `{ "format": "learning-adventure:pack", "version": 1, "files": { ... } }`；`files` 包含 `pack.json`、`questions.json`、`units.json`、`items.json`、`outfit-models.json`、`drops.json`、`encyclopedia.json`、`achievements.json`。不接受可執行程式或外部模型；使用既有程序式 3D 模型定義。格式與引用錯誤會指出檔名及欄位。每單元至少十二題；每檔上限 5 MB，最多十份匯入題庫。
+題庫檔格式為 `{ "format": "learning-adventure:pack", "version": 1, "files": { ... } }`；`files` 包含 `pack.json`、`questions.json`、`units.json`、`items.json`、`outfit-models.json`、`drops.json`、`encyclopedia.json`、`achievements.json`。不接受可執行程式或外部模型；使用既有程序式 3D 模型定義。格式與引用錯誤會指出檔名及欄位。每單元題池至少一題，題量依內容而定；每次最多隨機抽十題並混入部分錯題，短題庫按實際題數挑戰；每檔上限 5 MB，最多十份匯入題庫。
 
 相同 ID、相同內容可再次加入；同 ID 不同內容拒絕覆寫，請由製作者提供新 ID。內容包切換會先保存並重新開啟，各題庫分開記錄進度。內建題庫沿用原有 v1 存檔 key。匯入存檔會檢查版本、內容包 ID、統計、庫存、穿搭、已讀、錯題及家具碰撞；驗證或儲存失敗均保留原進度。重置只影響目前題庫，需輸入「重新開始」再確認。
 

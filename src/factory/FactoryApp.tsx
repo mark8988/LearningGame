@@ -22,7 +22,7 @@ export function FactoryApp() {
       {error && <div className="factory-error" role="alert">{error}<button aria-label="關閉提醒" onClick={() => setError('')}><X size={16} /></button></div>}
       <div className="factory-workspace"><aside className="factory-library"><div><h2>我的教材</h2><button onClick={() => { setSelected(null); setDocument(null); setNewUpload(true); }}>＋新增</button></div>{documents.length === 0 && <p>第一本教材，<br />會是冒險的起點。</p>}<nav aria-label="教材清單">{documents.map(doc => <button className={selected === doc.id ? 'selected' : ''} key={doc.id} onClick={() => choose(doc.id)}><FileText size={18} /><span><b>{doc.title}</b><small>{statusNames[doc.status]}</small></span></button>)}</nav></aside><div className="factory-content">
         {newUpload ? <UploadForm health={health} onUploaded={choose} /> : document && health ? <DocumentDetail key={document.id} document={document} health={health} onChange={setDocument} /> : <section className="factory-card"><p>正在讀取教材…</p></section>}
-      </div></div><footer className="factory-footer"><span><Sprout size={15} />每一頁，都能成為新發現。</span><span>內容工廠 CF-B · 0.8.0</span></footer></main></div>;
+      </div></div><footer className="factory-footer"><span><Sprout size={15} />每一頁，都能成為新發現。</span><span>內容工廠 CF-B · 0.9.0</span></footer></main></div>;
 }
 function UploadForm({ health, onUploaded }: { health: Health | null; onUploaded(id: string): void }) {
   const [title, setTitle] = useState(''); const [files, setFiles] = useState<File[]>([]); const [cover, setCover] = useState(1); const [toc, setToc] = useState(2);

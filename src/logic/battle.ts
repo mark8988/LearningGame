@@ -1,4 +1,7 @@
 import type { Question, Unit } from '../data/schemas';
+export const CHALLENGE_QUESTION_LIMIT = 10;
+export const WRONG_QUESTION_RATIO = 0.3;
+export const challengeBossHp = (hp: number, count: number, level = 1) => count >= CHALLENGE_QUESTION_LIMIT ? hp : Math.max(1, Math.min(Math.round(hp * count / CHALLENGE_QUESTION_LIMIT), count * Math.round((18 + (level - 1) * 2) * 0.85)));
 export const levelFromXp = (xp: number) => Math.floor(Math.sqrt(Math.max(0, xp) / 100)) + 1;
 export const maxHp = (level: number) => 100 + (level - 1) * 10;
 export const counterDamage = (attack: number, level: number) => Math.max(5, attack - level);
@@ -14,11 +17,14 @@ function shuffle<T>(values: T[], random: () => number): T[] {
 }
 export function selectQuestions(pool: Question[], wrongIds: string[], random: () => number = Math.random): Question[] {
   const unique = [...new Map(pool.map(q => [q.id, q])).values()];
-  const priority = shuffle(unique.filter(q => wrongIds.includes(q.id)), random).slice(0, 3);
-  const rest = shuffle(unique.filter(q => !priority.some(p => p.id === q.id) && !wrongIds.includes(q.id)), random);
-  const overflow = shuffle(unique.filter(q => wrongIds.includes(q.id) && !priority.some(p => p.id === q.id)), random);
-  // 優先放入最多三題錯題；一般題不足時再補入其他錯題，維持十題不重複。
-  return shuffle([...priority, ...rest, ...overflow].slice(0, 10), random);
+  const size = Math.min(CHALLENGE_QUESTION_LIMIT, unique.length); const wrong = new Set(wrongIds);
+  const quota = Math.max(1, Math.floor(size * WRONG_QUESTION_RATIO));
+  const priority = shuffle(unique.filter(q => wrong.has(q.id)), random).slice(0, quota);
+  const selected = new Set(priority.map(q => q.id));
+  const rest = shuffle(unique.filter(q => !wrong.has(q.id)), random);
+  const overflow = shuffle(unique.filter(q => wrong.has(q.id) && !selected.has(q.id)), random);
+  // 題庫與單次挑戰分開；普通題不足時才補其他錯題，全程不重複。
+  return shuffle([...priority, ...rest, ...overflow].slice(0, size), random);
 }
 export function victoryCoins(correct: number, total: number, firstClear: boolean) {
   return 50 + correct * 5 + (correct === total ? 30 : 0) + (firstClear ? 100 : 0);

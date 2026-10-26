@@ -48,6 +48,8 @@ public sealed class DraftBatch
     public Guid? PendingItemId { get; set; }
     public string? PendingKind { get; set; }
     public string Instruction { get; set; } = "";
+    public QuestionPlan? Plan { get; set; }
+    public Dictionary<int, string> SkippedQuestions { get; set; } = [];
     public List<QuestionDraft> Questions { get; set; } = [];
     public List<EntryDraft> Entries { get; set; } = [];
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;

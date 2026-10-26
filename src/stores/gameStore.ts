@@ -3,7 +3,7 @@ import { bootContent } from '../data/library';
 import { validateProgress } from '../logic/transfers';
 import { playSound } from '../logic/sound';
 import type { ContentPack, Question, Unit } from '../data/schemas';
-import { counterDamage, hitDamage, isUnlocked, levelFromXp, maxHp, selectQuestions, starCount, victoryCoins } from '../logic/battle';
+import { challengeBossHp, counterDamage, hitDamage, isUnlocked, levelFromXp, maxHp, selectQuestions, starCount, victoryCoins } from '../logic/battle';
 import { LocalSaveRepository, newGame, type PlayerSave, type SaveRepository } from '../logic/save';
 import { awardDrops, rollDrops, type DropReceipt } from '../logic/drops';
 import { healWithPotion, purchase } from '../logic/shop';
@@ -110,7 +110,10 @@ export function createGameStore(pack: ContentPack, repository: SaveRepository, r
       const unit = pack.units.find(u => u.id === unitId);
       if (!unit || !isUnlocked(unit, player.clearedUnitIds)) return;
       const level = levelFromXp(player.xp);
-      set({ parentUnlocked: false, screen: 'battle', result: null, review: null, notice: null, battle: { unit, questions: selectQuestions(pack.questions.filter(q => unit.questionPool.includes(q.id)), player.wrongQuestionIds, random), index: 0, playerHp: maxHp(level), playerMaxHp: maxHp(level), bossHp: unit.boss.hp, level, correct: 0, feedback: null, outcome: null } });
+      const questions = selectQuestions(pack.questions.filter(q => unit.questionPool.includes(q.id)), player.wrongQuestionIds, random);
+      if (!questions.length) return;
+      const challengeUnit = { ...unit, boss: { ...unit.boss, hp: challengeBossHp(unit.boss.hp, questions.length, level) } };
+      set({ parentUnlocked: false, screen: 'battle', result: null, review: null, notice: null, battle: { unit: challengeUnit, questions, index: 0, playerHp: maxHp(level), playerMaxHp: maxHp(level), bossHp: challengeUnit.boss.hp, level, correct: 0, feedback: null, outcome: null } });
     },
     answer: choice => {
       const { battle, player } = get();
