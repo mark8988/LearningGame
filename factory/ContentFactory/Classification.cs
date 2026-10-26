@@ -37,8 +37,9 @@ public sealed class LocalClassificationProvider : ILlmProvider
             if (match.Groups[1].Value == "國中" && value <= 3) value += 6; if (match.Groups[1].Value == "高中" && value <= 3) value += 9;
             if (value is >= 1 and <= 12) { grade = value; evidence.Add($"封面：{match.Value}"); }
         }
-        var subjects = new (string Subject, string Pattern)[] { ("國語文", "國語文|國語|語文課本"), ("英語文", "英語文|英語|英文|English"), ("數學", "數學|Mathematics"), ("自然科學", "自然科學|自然|Science"), ("社會", "社會(?!公民)"), ("生活課程", "生活課程"), ("健康與體育", "健康與體育|健體"), ("藝術", "藝術"), ("綜合活動", "綜合活動"), ("資訊科技", "資訊科技"), ("生活科技", "生活科技"), ("物理", "物理"), ("化學", "化學"), ("生物", "生物"), ("地球科學", "地球科學"), ("歷史", "歷史"), ("地理", "地理"), ("公民與社會", "公民與社會") };
+        var subjects = new (string Subject, string Pattern)[] { ("國語文", "國語文|國語|國文|語文課本"), ("英語文", "英語文|英語|英文|English"), ("數學", "數學|Mathematics"), ("自然科學", "自然科學|自然|理化|Science"), ("社會", "社會(?!公民)"), ("生活課程", "生活課程"), ("健康與體育", "健康與體育|健體"), ("藝術", "藝術"), ("綜合活動", "綜合活動"), ("資訊科技", "資訊科技"), ("生活科技", "生活科技"), ("物理", "物理"), ("化學", "化學"), ("生物", "生物"), ("地球科學", "地球科學"), ("歷史", "歷史"), ("地理", "地理"), ("公民與社會", "公民與社會|公民") };
         var detected = subjects.Where(s => Regex.IsMatch(cover, s.Pattern, RegexOptions.IgnoreCase)).ToArray();
+        if (grade is >= 7 and <= 9 && detected.Length > 0 && detected.All(s => new[] { "自然科學", "物理", "化學", "生物", "地球科學" }.Contains(s.Subject))) detected = [("自然科學", "")];
         var subject = detected.Length == 1 ? detected[0].Subject : "";
         if (subject.Length > 0) evidence.Add($"封面科目：{subject}"); else evidence.Add("封面科目不足或含多種科目，請家長選擇。");
         var publisher = new[] { "康軒", "翰林", "南一", "龍騰", "三民", "育達", "全華", "泰宇" }.FirstOrDefault(cover.Contains) ?? "";

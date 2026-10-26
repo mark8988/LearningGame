@@ -1,7 +1,15 @@
 import { z } from 'zod';
 
 const id = z.string().min(1);
-export const questionSchema = z.object({ id, unitId: id, stem: id, options: z.tuple([id, id, id, id]), answerIndex: z.union([z.literal(0), z.literal(1), z.literal(2), z.literal(3)]), explanation: id, difficulty: z.union([z.literal(1), z.literal(2), z.literal(3)]), zhuyin: z.string().optional() }).refine(question => !question.zhuyin || question.zhuyin.trim().split(/\s+/).length === Array.from(question.stem).filter(char => /\p{Script=Han}/u.test(char)).length, { path: ['zhuyin'], message: '注音需以空白分隔，對應每個漢字（不含標點）' });
+export const questionSchema = z.object({ id, unitId: id, stem: id, type: z.enum(['choice', 'fillBlank']).optional(), options: z.array(id).max(4).default([]), answerIndex: z.number().int().min(0).max(3).optional(), acceptedAnswers: z.array(z.string().trim().min(1).max(120)).min(1).max(8).optional(), explanation: id, difficulty: z.union([z.literal(1), z.literal(2), z.literal(3)]), zhuyin: z.string().optional() }).superRefine((question, ctx) => {
+  if (question.type === 'fillBlank') {
+    if ((question.stem.match(/_{3,}/g) ?? []).length !== 1) ctx.addIssue({ code: 'custom', path: ['stem'], message: '填空題須有一個 ___ 空格' });
+    if (!question.acceptedAnswers?.length) ctx.addIssue({ code: 'custom', path: ['acceptedAnswers'], message: '填空題須提供可接受答案' });
+  } else {
+    if (question.answerIndex === undefined) ctx.addIssue({ code: 'custom', path: ['answerIndex'], message: '選擇題須提供正確答案位置' });
+    if (question.options.length !== 4 || new Set(question.options).size !== 4) ctx.addIssue({ code: 'custom', path: ['options'], message: '選擇題須有四個不同選項' });
+  }
+}).transform(question => ({ ...question, answerIndex: question.answerIndex ?? 0 })).refine(question => !question.zhuyin || question.zhuyin.trim().split(/\s+/).length === Array.from(question.stem).filter(char => /\p{Script=Han}/u.test(char)).length, { path: ['zhuyin'], message: '注音需以空白分隔，對應每個漢字（不含標點）' });
 export const unitSchema = z.object({ id, name: id, order: z.number().int().positive(), boss: z.object({ name: id, asset: id, hp: z.number().positive(), attack: z.number().positive() }), questionPool: z.array(id).min(10), encyclopediaIds: z.array(id), dropTableId: id, unlockAfter: id.optional() });
 export const itemSchema = z.object({ id, kind: z.enum(['furniture', 'outfit']), name: id, rarity: z.enum(['common', 'rare', 'epic']), price: z.number().int().nonnegative(), asset: id, obtainFrom: z.array(z.enum(['shop', 'drop', 'achievement', 'starter'])).min(1), gridW: z.number().int().positive().optional(), gridH: z.number().int().positive().optional(), layer: z.number().int().optional(), outfitSlot: z.enum(['hair', 'top', 'bottom', 'shoes', 'hat', 'accessory', 'handheld']).optional() }).superRefine((item, ctx) => {
   if (item.kind === 'furniture' && (!item.gridW || !item.gridH)) ctx.addIssue({ code: 'custom', path: ['gridW'], message: '家具必須提供 gridW 與 gridH' });

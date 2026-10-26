@@ -1,5 +1,6 @@
 import type { ContentPack, Question } from '../data/schemas';
 import type { PlayerSave } from './save';
+import { gradeAnswer, type AnswerResponse } from './answers';
 export function unlockedEntries(player: PlayerSave, pack: ContentPack) {
   const allowed = new Set(pack.units.filter(unit => player.clearedUnitIds.includes(unit.id)).flatMap(unit => unit.encyclopediaIds));
   return pack.encyclopedia.filter(entry => allowed.has(entry.id));
@@ -8,9 +9,9 @@ export function reviewQuestions(player: PlayerSave, pack: ContentPack) {
   const ids = new Set(player.wrongQuestionIds);
   return pack.questions.filter(question => ids.has(question.id));
 }
-export function answerReview(player: PlayerSave, question: Question, choice: number) {
-  if (!player.wrongQuestionIds.includes(question.id) || !Number.isInteger(choice) || choice < 0 || choice > 3) return null;
-  const correct = choice === question.answerIndex;
+export function answerReview(player: PlayerSave, question: Question, choice: AnswerResponse) {
+  if (!player.wrongQuestionIds.includes(question.id)) return null;
+  const correct = gradeAnswer(question, choice); if (correct === null) return null;
   return { correct, coins: correct ? 2 : 0, player: { ...player, coins: player.coins + (correct ? 2 : 0), wrongQuestionIds: correct ? player.wrongQuestionIds.filter(id => id !== question.id) : player.wrongQuestionIds, stats: { ...player.stats, questionsAnswered: player.stats.questionsAnswered + 1, correct: player.stats.correct + Number(correct) } } };
 }
 export function obtainHints(itemId: string, pack: ContentPack) {

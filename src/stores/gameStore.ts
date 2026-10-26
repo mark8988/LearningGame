@@ -13,11 +13,13 @@ import type { OutfitSlot } from '../data/schemas';
 import { unlockAchievements, type AchievementAward } from '../logic/achievements';
 import { answerReview, reviewQuestions, unlockedEntries } from '../logic/learning';
 
+import { gradeAnswer, type AnswerResponse } from '../logic/answers';
+
 export type Screen = 'home' | 'map' | 'battle' | 'result' | 'shop' | 'decor' | 'wardrobe' | 'dex' | 'review' | 'achievements' | 'parent';
-export interface ReviewState { questions: Question[]; index: number; correct: number; coins: number; done: boolean; feedback: { choice: number; correct: boolean } | null }
-export interface Battle { unit: Unit; questions: Question[]; index: number; playerHp: number; playerMaxHp: number; bossHp: number; level: number; correct: number; feedback: { choice: number; correct: boolean; damage: number; critical: boolean } | null; outcome: 'won' | 'lost' | null }
+export interface ReviewState { questions: Question[]; index: number; correct: number; coins: number; done: boolean; feedback: { choice: AnswerResponse; correct: boolean } | null }
+export interface Battle { unit: Unit; questions: Question[]; index: number; playerHp: number; playerMaxHp: number; bossHp: number; level: number; correct: number; feedback: { choice: AnswerResponse; correct: boolean; damage: number; critical: boolean } | null; outcome: 'won' | 'lost' | null }
 export interface BattleResult { won: boolean; coins: number; dropCoins: number; drops: DropReceipt[]; xp: number; correct: number; answered: number; stars: number; firstClear: boolean; unitName: string }
-interface GameState { parentUnlocked: boolean; authorizeParent(): void; replaceProgress(save: PlayerSave): void; pack: ContentPack; player: PlayerSave; screen: Screen; battle: Battle | null; result: BattleResult | null; review: ReviewState | null; achievementQueue: AchievementAward[]; warning: string | null; notice: string | null; saveStatus: 'saved' | 'pending' | 'error'; navigate(screen: Exclude<Screen, 'battle' | 'result' | 'review'>): void; startBattle(unitId: string): void; answer(choice: number): void; nextTurn(): void; startReview(): void; reviewAnswer(choice: number): void; nextReview(): void; readEntry(id: string): void; dismissAchievement(): void; buy(productId: string): void; usePotion(): void; equip(slot: OutfitSlot, itemId: string | null): void; place(placement: PlacedFurniture, movingIndex?: number | null): boolean; removeFurniture(index: number): void; dismissWarning(): void }
+interface GameState { parentUnlocked: boolean; authorizeParent(): void; replaceProgress(save: PlayerSave): void; pack: ContentPack; player: PlayerSave; screen: Screen; battle: Battle | null; result: BattleResult | null; review: ReviewState | null; achievementQueue: AchievementAward[]; warning: string | null; notice: string | null; saveStatus: 'saved' | 'pending' | 'error'; navigate(screen: Exclude<Screen, 'battle' | 'result' | 'review'>): void; startBattle(unitId: string): void; answer(choice: AnswerResponse): void; nextTurn(): void; startReview(): void; reviewAnswer(choice: AnswerResponse): void; nextReview(): void; readEntry(id: string): void; dismissAchievement(): void; buy(productId: string): void; usePotion(): void; equip(slot: OutfitSlot, itemId: string | null): void; place(placement: PlacedFurniture, movingIndex?: number | null): boolean; removeFurniture(index: number): void; dismissWarning(): void }
 
 export function createGameStore(pack: ContentPack, repository: SaveRepository, random: () => number = Math.random) {
   const loaded = repository.load();
@@ -112,9 +114,9 @@ export function createGameStore(pack: ContentPack, repository: SaveRepository, r
     },
     answer: choice => {
       const { battle, player } = get();
-      if (!battle || battle.feedback || battle.outcome || !Number.isInteger(choice) || choice < 0 || choice > 3) return;
+      if (!battle || battle.feedback || battle.outcome) return;
       const question = battle.questions[battle.index];
-      const correct = question.answerIndex === choice;
+      const correct = gradeAnswer(question, choice); if (correct === null) return;
       const hit = correct ? hitDamage(battle.level, random) : { damage: counterDamage(battle.unit.boss.attack, battle.level), critical: false };
       const bossHp = correct ? Math.max(0, battle.bossHp - hit.damage) : battle.bossHp;
       const playerHp = correct ? battle.playerHp : Math.max(0, battle.playerHp - hit.damage);

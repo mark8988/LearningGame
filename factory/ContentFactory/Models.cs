@@ -54,6 +54,8 @@ public sealed class FactoryOptions
     public string AzureKey { get; set; } = "";
     public string AnthropicApiKey { get; set; } = "";
     public string AnthropicModel { get; set; } = "";
+    public string LocalModelEndpoint { get; set; } = "http://127.0.0.1:8080/";
+    public string OllamaEndpoint { get; set; } = "http://127.0.0.1:11434/";
     public const long MaxUploadBytes = 200L * 1024 * 1024;
     public const int MaxPages = 600;
 }

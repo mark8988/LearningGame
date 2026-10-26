@@ -1,6 +1,6 @@
 # 森知冒險 LearningGame
 
-國小學科複習的 3D 學習冒險。依據 [ARCHITECTURE.md](ARCHITECTURE.md) 分階段開發；**小屋、地圖、角色與戰鬥使用真正的 WebGL 3D**，題目及功能面板使用 React DOM。
+國小至國中學科複習的 3D 學習冒險。依據 [ARCHITECTURE.md](ARCHITECTURE.md) 分階段開發；**小屋、地圖、角色與戰鬥使用真正的 WebGL 3D**，題目及功能面板使用 React DOM。
 
 ## 本機執行
 
@@ -46,9 +46,10 @@ Vite 使用相對資源路徑 `base: './'`，可部署在 `/LearningGame/` 子�
 - Phase 5：知識／道具圖鑑、3D 複習小徑、五項成就與自動獎勵；60 題、15 篇附圖知識、20 款道具。
 - Phase 6：家長驗證、學習報表、題庫／存檔備份還原、內容包獨立進度、PWA 離線、音效及閱讀設定。
 - CF-A：本機 ASP.NET Core 8 內容工廠，上傳 PDF／EPUB／圖片、文字擷取／本機 OCR、學制科目歸類、單元切分與家長確認。
-- 後續 CF-B–CF-C：自動產題、人工審核與題庫打包。遊戲仍不依賴後端即可運行。
+- CF-B：本機 Qwen／Ollama 產生選擇題、填空題與知識草稿，逐項人工審核及來源對照，支援台灣國小至國中教材。
+- 後續 CF-C：正式遊戲題庫打包。遊戲仍不依賴後端即可運行。
 
-目前版本 0.7.0，遊戲軌 Phase 0–6 已完成，CF-A 本機流程已開發與測試。新遊戲贈送四件家具；服裝可從商店及冒險取得，再由小屋或側邊導覽進入衣櫃穿戴。可上傳教材並整理文字與歸類；自動轉成可遊玩的題庫仍待 CF-B–CF-C。
+目前版本 0.8.0，遊戲軌 Phase 0–6、CF-A／CF-B 本機流程已開發。新遊戲贈送四件家具；服裝可從商店及冒險取得，再由小屋或側邊導覽進入衣櫃穿戴。可上傳教材、整理文字、產生混合題型並審核；工廠草稿自動打包成可遊玩的題庫仍待 CF-C。內建仍為小三自然展示包，沒有內附完整國中課程。
 
 ## 程式組織
 
@@ -112,7 +113,7 @@ Vite 使用相對資源路徑 `base: './'`，可部署在 `/LearningGame/` 子�
 
 閱讀設定提供音效、放大文字與題幹注音。音效預設關閉，使用本機 Web Audio；注音預設開啟，目前五題有示範標注，其餘題目保留原文。資料格式、備份步驟與 PWA 驗證見 [docs/PARENT-AND-OFFLINE.md](docs/PARENT-AND-OFFLINE.md)。
 
-## CF-A 本機教材內容工廠
+## CF-A／CF-B 本機教材內容工廠
 
 使用 Windows x64、.NET SDK／執行階段 8 與 Node.js 24，先準備再啟動：
 
@@ -124,3 +125,5 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Start-Factory.ps1
 開啟 `http://127.0.0.1:5088/`，或從遊戲家長模式進入。教材保存在 `factory-data/`，預設以本機 OCR／規則歸類，不傳送雲端。掃描 PDF 可擷取文字，但所有 OCR 結果都需家長確認；封面／目錄缺字會要求補頁，無課程單元時以固定頁窗暫分並標為待確認。
 
 自製測試教材以 `node scripts/generate-factory-fixtures.mjs` 產生，保存在 `.local/factory-fixtures/`。依使用者要求，測試後不刪除，再次產生也不覆寫同名檔案。十份電子 PDF 與十份掃描 PDF 已驗證，但不能代替真實課本的辨識率驗收。完整流程、API 與設定見 [docs/CONTENT-FACTORY.md](docs/CONTENT-FACTORY.md)。
+
+填空題使用一個 `___` 及 `acceptedAnswers`，戰鬥與錯題複習共用答案判定；同義詞及數學等價寫法由家長明列。產題與審核操作見 [QUESTION-DRAFTS.md](docs/QUESTION-DRAFTS.md)。

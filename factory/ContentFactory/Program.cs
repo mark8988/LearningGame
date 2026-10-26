@@ -21,6 +21,10 @@ builder.Services.AddHttpClient("providers", client => client.Timeout = TimeSpan.
 builder.Services.AddSingleton<IOcrProvider>(services => options.OcrProvider.Equals("Azure", StringComparison.OrdinalIgnoreCase) ? new AzureOcrProvider(services.GetRequiredService<IHttpClientFactory>().CreateClient("providers"), options) : new LocalOcrProvider(options));
 builder.Services.AddSingleton<ILlmProvider>(services => options.ClassificationProvider.Equals("Anthropic", StringComparison.OrdinalIgnoreCase) ? new AnthropicClassificationProvider(services.GetRequiredService<IHttpClientFactory>().CreateClient("providers"), options) : new LocalClassificationProvider());
 builder.Services.AddSingleton<DocumentExtractor>(); builder.Services.AddHostedService<DocumentWorker>();
+builder.Services.AddSingleton<DraftStore>(); builder.Services.AddSingleton<GenerationQueue>();
+builder.Services.AddHttpClient("generation", client => client.Timeout = TimeSpan.FromMinutes(6)).ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false });
+builder.Services.AddSingleton<IGenerationProvider>(services => new LocalGenerationProvider(services.GetRequiredService<IHttpClientFactory>().CreateClient("generation"), options));
+builder.Services.AddHostedService<GenerationWorker>();
 var app = builder.Build();
 // This build is intentionally loopback-only; no textbook API is exposed to the LAN.
 app.Use(async (context, next) =>
@@ -39,7 +43,7 @@ app.Use(async (context, next) =>
     }
 });
 app.UseDefaultFiles(); app.UseStaticFiles();
-app.MapGet("/api/health", () => new { version = "0.7.0", mode = "local", ocrProvider = options.OcrProvider, classificationProvider = options.ClassificationProvider, ocrReady = options.OcrProvider == "Azure" ? !string.IsNullOrEmpty(options.AzureKey) : File.Exists(Path.Combine(options.TessdataDirectory, "chi_tra.traineddata")) && File.Exists(Path.Combine(options.TessdataDirectory, "eng.traineddata")), maxUploadBytes = FactoryOptions.MaxUploadBytes, schools = Curriculum.Schools, subjects = Curriculum.Subjects });
+app.MapGet("/api/health", () => new { version = "0.8.0", mode = "local", ocrProvider = options.OcrProvider, classificationProvider = options.ClassificationProvider, ocrReady = options.OcrProvider == "Azure" ? !string.IsNullOrEmpty(options.AzureKey) : File.Exists(Path.Combine(options.TessdataDirectory, "chi_tra.traineddata")) && File.Exists(Path.Combine(options.TessdataDirectory, "eng.traineddata")), maxUploadBytes = FactoryOptions.MaxUploadBytes, schools = Curriculum.Schools, subjects = Curriculum.Subjects });
 app.MapGet("/api/documents", (DocumentStore store) => store.List().Select(d => new { d.Id, d.Title, d.Status, d.Progress, d.Message, d.CreatedAt, d.UpdatedAt }));
 app.MapGet("/api/documents/{id:guid}", (Guid id, DocumentStore store) => store.Get(id));
 app.MapPost("/api/documents", async (HttpRequest request, DocumentStore store, JobQueue queue, CancellationToken token) =>
@@ -97,6 +101,7 @@ app.MapGet("/api/documents/{id:guid}/files/{fileId:guid}", (Guid id, Guid fileId
     return Results.File(store.FilePath(id, file), file.MediaType, enableRangeProcessing: true);
 });
 app.MapGet("/api/documents/{id:guid}/export", (Guid id, DocumentStore store) => Results.File(System.Text.Json.JsonSerializer.SerializeToUtf8Bytes(store.Get(id), FactoryJson.Options), "application/json", $"source-{id}.json"));
+app.MapDraftEndpoints();
 app.Map("/api/{**path}", () => Results.NotFound(new { error = "找不到此 API。" }));
 app.MapFallbackToFile("index.html");
 app.Run();

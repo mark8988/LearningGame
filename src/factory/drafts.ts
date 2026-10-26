@@ -1,0 +1,14 @@
+import type { Unit } from './types';
+export interface ModelChoice { provider: string; model: string; label: string }
+export interface SourceRef { documentId: string; pageNumber: number; quote: string }
+export interface QuestionContent { type: 'choice' | 'fillBlank'; acceptedAnswers: string[] | null; stem: string; options: string[]; answerIndex: number; explanation: string; difficulty: number; sourceRef: SourceRef }
+export interface EntryContent { title: string; text: string; illustration: string; sourceRef: SourceRef }
+export type ReviewState = 'draft' | 'approved' | 'returned';
+export interface Draft<T> { id: string; slot: number; revision: number; content: T; status: ReviewState; note: string; reviewedAt: string | null; versions: number; errors: string[] }
+export type BatchStatus = 'queued' | 'generating' | 'review' | 'failed' | 'cancelled' | 'stale';
+export interface BatchSummary { id: string; unitIndex: number; unitName: string; status: BatchStatus; progress: number; message: string; model: { provider: string; model: string }; createdAt: string }
+export interface Batch extends BatchSummary { revision: number; error: string | null; sourceError: string | null; releaseErrors: string[]; canRelease: boolean; questions: Draft<QuestionContent>[]; entries: Draft<EntryContent>[] }
+export const reviewNames: Record<ReviewState, string> = { draft: '待審核', approved: '已核准', returned: '已退回' };
+export const batchBusy = (batch: BatchSummary | null) => batch?.status === 'queued' || batch?.status === 'generating';
+export type EditorItem = { kind: 'questions'; draft: Draft<QuestionContent> } | { kind: 'entries'; draft: Draft<EntryContent> };
+export type UnitWithIndex = Unit & { index: number };
