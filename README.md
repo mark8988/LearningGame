@@ -21,6 +21,9 @@ npm run build    # TypeScript 檢查與正式靜態網站建置
 npm run preview  # 預覽 dist 正式建置
 npm run test:e2e # Edge 瀏覽器，平板觸控與手機主流程測試
 npm run test:offline # 正式建置斷網後通關、購買、擺放及重開
+npm run build:factory # 建置本機內容工廠介面
+npm run test:factory # ASP.NET Core 後端測試
+npm run test:factory:e2e # 本機教材上傳、OCR、歸類與人工確認
 ```
 
 E2E 預設使用本機 Microsoft Edge，不會自動安裝瀏覽器；若環境沒有 Edge，請在 `playwright.config.ts` 改用已安裝的 Playwright Chromium。測試會自行啟動 4173 埠的本機網站。
@@ -42,9 +45,10 @@ Vite 使用相對資源路徑 `base: './'`，可部署在 `/LearningGame/` 子�
 - Phase 4：七部位 3D 換裝、衣櫃、商店試穿、小屋／戰鬥／結算同步、模型資產檢查。
 - Phase 5：知識／道具圖鑑、3D 複習小徑、五項成就與自動獎勵；60 題、15 篇附圖知識、20 款道具。
 - Phase 6：家長驗證、學習報表、題庫／存檔備份還原、內容包獨立進度、PWA 離線、音效及閱讀設定。
-- CF-A–CF-C：獨立的 ASP.NET Core 教材內容工廠，尚未實作。遊戲不依賴後端即可運行。
+- CF-A：本機 ASP.NET Core 8 內容工廠，上傳 PDF／EPUB／圖片、文字擷取／本機 OCR、學制科目歸類、單元切分與家長確認。
+- 後續 CF-B–CF-C：自動產題、人工審核與題庫打包。遊戲仍不依賴後端即可運行。
 
-目前版本 0.6.0，遊戲軌 Phase 0–6 已完成。新遊戲贈送四件家具；服裝可從商店及冒險取得，再由小屋或側邊導覽進入衣櫃穿戴。直接上傳 PDF／EPUB 教材、OCR、自動產題與審核將於 CF-A–CF-C 實作；目前可加入完整題庫 JSON。
+目前版本 0.7.0，遊戲軌 Phase 0–6 已完成，CF-A 本機流程已開發與測試。新遊戲贈送四件家具；服裝可從商店及冒險取得，再由小屋或側邊導覽進入衣櫃穿戴。可上傳教材並整理文字與歸類；自動轉成可遊玩的題庫仍待 CF-B–CF-C。
 
 ## 程式組織
 
@@ -107,3 +111,16 @@ Vite 使用相對資源路徑 `base: './'`，可部署在 `/LearningGame/` 子�
 正式網站顯示「離線遊玩已就緒」後，可斷網重開並完整遊玩；瀏覽器提供安裝／加入主畫面。更新版本需點選「保存並更新版本」，不會在答題中自動刷新。開發模式不註冊 Service Worker，測試離線前先執行 `npm run build`。
 
 閱讀設定提供音效、放大文字與題幹注音。音效預設關閉，使用本機 Web Audio；注音預設開啟，目前五題有示範標注，其餘題目保留原文。資料格式、備份步驟與 PWA 驗證見 [docs/PARENT-AND-OFFLINE.md](docs/PARENT-AND-OFFLINE.md)。
+
+## CF-A 本機教材內容工廠
+
+使用 Windows x64、.NET SDK／執行階段 8 與 Node.js 24，先準備再啟動：
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Setup-Factory.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Start-Factory.ps1
+```
+
+開啟 `http://127.0.0.1:5088/`，或從遊戲家長模式進入。教材保存在 `factory-data/`，預設以本機 OCR／規則歸類，不傳送雲端。掃描 PDF 可擷取文字，但所有 OCR 結果都需家長確認；封面／目錄缺字會要求補頁，無課程單元時以固定頁窗暫分並標為待確認。
+
+自製測試教材以 `node scripts/generate-factory-fixtures.mjs` 產生，保存在 `.local/factory-fixtures/`。依使用者要求，測試後不刪除，再次產生也不覆寫同名檔案。十份電子 PDF 與十份掃描 PDF 已驗證，但不能代替真實課本的辨識率驗收。完整流程、API 與設定見 [docs/CONTENT-FACTORY.md](docs/CONTENT-FACTORY.md)。

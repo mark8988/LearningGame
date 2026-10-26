@@ -12,3 +12,10 @@ CLAUDE.md
 NEW_PROJECT_SETUP.md
 WORKFLOW.md
 cc-workspace/
+**/bin/
+**/obj/
+factory-data/
+factory/**/appsettings.Local.json
+.tools/
+artifacts/
+factory/ContentFactory/wwwroot/

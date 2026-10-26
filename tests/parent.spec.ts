@@ -23,7 +23,8 @@ test('家長長按取消、算術驗證、備份往返、取消還原與重置�
   const progress = { ...initial, coins: 187, xp: 30, wrongQuestionIds: [questions[0].id], stats: { battlesWon: 0, questionsAnswered: 4, correct: 3 } };
   await upload(progress); await page.getByRole('button', { name: '取消', exact: true }).click(); expect((await saved(page)).coins).toBe(0);
   await upload(progress); await page.getByRole('button', { name: '還原並取代進度' }).click(); await expect(page.getByRole('region', { name: '學習報表' })).toContainText('75%'); await expect(page.getByTestId('coins')).toHaveText('187');
-  await page.locator('summary').click(); await expect(page.locator('.wrong-record')).toContainText(questions[0].stem);
+  await expect(page.getByRole('region', { name: '教材內容工廠' }).getByRole('link', { name: '開啟本機內容工廠' })).toHaveAttribute('href', 'http://127.0.0.1:5088/');
+  await page.getByRole('region', { name: '學習報表' }).locator('summary').click(); await expect(page.locator('.wrong-record')).toContainText(questions[0].stem);
   await page.screenshot({ path: `test-results/parent-${test.info().project.name}.png`, fullPage: true });
   await page.getByRole('button', { name: '重置目前進度' }).click(); await expect(page.getByRole('button', { name: '確認重置', exact: true })).toBeDisabled(); await page.getByLabel('重置確認文字').fill('重新開始'); await page.getByRole('button', { name: '取消', exact: true }).click(); expect((await saved(page)).coins).toBe(187);
   await page.getByRole('button', { name: '重置目前進度' }).click(); await page.getByLabel('重置確認文字').fill('重新開始'); await page.getByRole('button', { name: '確認重置', exact: true }).click(); await expect(page.getByTestId('coins')).toHaveText('0'); expect((await saved(page)).wrongQuestionIds).toEqual([]);

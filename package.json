@@ -1,6 +1,6 @@
 {
   "name": "learning-adventure",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "private": true,
   "engines": {
     "node": ">=24.0.0"
@@ -15,7 +15,11 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "test:offline": "playwright test --config playwright.offline.config.ts"
+    "test:offline": "playwright test --config playwright.offline.config.ts",
+    "build:factory": "tsc -b && vite build --config vite.factory.config.ts",
+    "factory:run": "dotnet run --project factory/ContentFactory/ContentFactory.csproj --no-launch-profile",
+    "test:factory": "dotnet test factory/ContentFactory.Tests/ContentFactory.Tests.csproj",
+    "test:factory:e2e": "playwright test --config playwright.factory.config.ts"
   },
   "dependencies": {
     "@react-three/drei": "^9.122.0",
