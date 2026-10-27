@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 import questions from '../content-packs/science-g3/questions.json' with { type: 'json' };
 test('正式 PWA 完整快取後斷網，通關、購買、擺放與重開仍可遊玩', async ({ page, context }) => {
   const errors: string[] = []; page.on('pageerror', e => errors.push(e.message));
-  await page.goto('./'); await expect(page.locator('.version')).toContainText('0.9'); await expect(page.getByText('離線遊玩已就緒', { exact: true })).toBeVisible({ timeout: 30000 });
+  await page.goto('./'); await expect(page.locator('.version')).toContainText('0.10'); await expect(page.getByText('離線遊玩已就緒', { exact: true })).toBeVisible({ timeout: 30000 });
   await page.waitForFunction(() => !!navigator.serviceWorker.controller);
   const manifest = await page.evaluate(async () => { const link = document.querySelector<HTMLLinkElement>('link[rel="manifest"]')!; return (await fetch(link.href)).json(); }); expect(manifest.display).toBe('standalone'); expect(manifest.start_url).toBe('./');
   await context.setOffline(true); await page.reload(); await expect(page.getByText('離線中 · 冒險照常')).toBeVisible(); await expect(page.locator('canvas')).toBeVisible();

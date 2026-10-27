@@ -9,20 +9,31 @@ public static class DraftEndpoints
         string? sourceError = null;
         try { DraftQuality.RequireCurrent(batch, documents.Get(batch.DocumentId)); } catch (FactoryException error) { sourceError = error.Message; }
         var releaseErrors = DraftQuality.ReleaseErrors(batch).ToList(); if (sourceError is not null) releaseErrors.Insert(0, sourceError);
-        return new { batch.Id, batch.DocumentId, batch.UnitIndex, batch.UnitName, batch.Model, batch.Status, batch.Message, batch.Error, batch.Progress, batch.Revision, batch.CreatedAt, batch.UpdatedAt, sourceError, plan = QuestionPlanning.For(batch), skippedQuestions = batch.SkippedQuestions.Select(p => new { slot = p.Key, reason = p.Value }), targetCount = QuestionPlanning.For(batch).QuestionCount - batch.SkippedQuestions.Count, releaseErrors, canRelease = releaseErrors.Count == 0, questions = batch.Questions.OrderBy(q => q.Slot).Select(q => new { q.Id, q.Slot, q.Revision, q.Content, q.Status, q.Note, q.ReviewedAt, versions = q.History.Count, errors = DraftQuality.Question(q.Content, batch, q.Id) }), entries = batch.Entries.OrderBy(e => e.Slot).Select(e => new { e.Id, e.Slot, e.Revision, e.Content, e.Status, e.Note, e.ReviewedAt, versions = e.History.Count, errors = DraftQuality.Entry(e.Content, batch, e.Id) }) };
+        return new { batch.Id, batch.DocumentId, batch.UnitIndex, batch.UnitName, batch.Model, batch.IsPreview, batch.GenerationStartedAt, batch.GenerationCompletedAt, batch.Status, batch.Message, batch.Error, batch.Progress, batch.Revision, batch.CreatedAt, batch.UpdatedAt, sourceError, plan = QuestionPlanning.For(batch), skippedQuestions = batch.SkippedQuestions.Select(p => new { slot = p.Key, reason = p.Value }), targetCount = QuestionPlanning.For(batch).QuestionCount - batch.SkippedQuestions.Count, releaseErrors, canRelease = releaseErrors.Count == 0, questions = batch.Questions.OrderBy(q => q.Slot).Select(q => new { q.Id, q.Slot, q.Revision, q.Content, q.Status, q.Note, q.ReviewedAt, versions = q.History.Count, errors = DraftQuality.Question(q.Content, batch, q.Id) }), entries = batch.Entries.OrderBy(e => e.Slot).Select(e => new { e.Id, e.Slot, e.Revision, e.Content, e.Status, e.Note, e.ReviewedAt, versions = e.History.Count, errors = DraftQuality.Entry(e.Content, batch, e.Id) }) };
     }
     private static void Editable(DraftBatch batch, DocumentStore documents)
     {
+        if (batch.IsPreview) throw new FactoryException("模型預覽僅供比較，請選定模型後產生正式題庫草稿。");
         DraftQuality.RequireCurrent(batch, documents.Get(batch.DocumentId)); if (batch.Status is not (BatchStatus.Review or BatchStatus.Failed or BatchStatus.Cancelled)) throw new FactoryException("請等待產生完成或停止工作後，再修改與審核。");
     }
     public static void MapDraftEndpoints(this WebApplication app)
     {
         app.MapGet("/api/documents/{id:guid}/question-plan", (Guid id, int unitIndex, DocumentStore documents) => { var source = documents.Get(id); DraftQuality.RequireSource(source); return QuestionPlanning.Build(source, unitIndex); });
+        app.MapGet("/api/documents/{id:guid}/model-previews", (Guid id, int unitIndex, DocumentStore documents, DraftStore drafts) => { _ = documents.Get(id); return drafts.List(id).Where(b => b.IsPreview && b.UnitIndex == unitIndex).Select(b => View(b, documents)); });
+        app.MapPost("/api/documents/{id:guid}/model-previews", async (Guid id, StartDraftRequest input, DocumentStore documents, DraftStore drafts, GenerationQueue queue, IGenerationProvider provider, CancellationToken token) =>
+        {
+            var source = documents.Get(id); DraftQuality.RequireSource(source);
+            if (source.Revision != input.Revision) throw new FactoryException("教材已變更，請重新載入後預覽。");
+            var plan = QuestionPlanning.Preview(QuestionPlanning.Build(source, input.UnitIndex));
+            var models = await provider.Models(token); if (input.Model is null || !models.Any(m => m.Provider == input.Model.Provider && m.Model == input.Model.Model)) throw new FactoryException("選擇的本機模型尚未提供服務。");
+            var batch = new DraftBatch { DocumentId = id, UnitIndex = input.UnitIndex, UnitName = source.Units[input.UnitIndex].Name, SourceHash = DraftQuality.Fingerprint(source), Snapshot = source, Model = input.Model, Plan = plan, IsPreview = true, Message = "等待本機模型預覽" };
+            drafts.Create(batch); queue.Enqueue(batch.Id); return Results.Accepted($"/api/batches/{batch.Id}", View(batch, documents));
+        });
         app.MapGet("/api/generation/models", async (IGenerationProvider provider, CancellationToken token) => new { models = await provider.Models(token), localOnly = true });
         app.MapGet("/api/documents/{id:guid}/batches", (Guid id, DraftStore drafts, DocumentStore documents) =>
         {
             _ = documents.Get(id);
-            return drafts.List(id).Select(batch => new { batch.Id, batch.UnitIndex, batch.UnitName, batch.Status, batch.Message, batch.Progress, batch.Model, batch.CreatedAt, batch.UpdatedAt, questions = batch.Questions.Count, approvedQuestions = batch.Questions.Count(q => q.Status == ReviewStatus.Approved), entries = batch.Entries.Count, approvedEntries = batch.Entries.Count(e => e.Status == ReviewStatus.Approved) });
+            return drafts.List(id).Where(batch => !batch.IsPreview).Select(batch => new { batch.Id, batch.UnitIndex, batch.UnitName, batch.Status, batch.Message, batch.Progress, batch.Model, batch.CreatedAt, batch.UpdatedAt, questions = batch.Questions.Count, approvedQuestions = batch.Questions.Count(q => q.Status == ReviewStatus.Approved), entries = batch.Entries.Count, approvedEntries = batch.Entries.Count(e => e.Status == ReviewStatus.Approved) });
         });
         app.MapPost("/api/documents/{id:guid}/batches", async (Guid id, StartDraftRequest input, DocumentStore documents, DraftStore drafts, GenerationQueue queue, IGenerationProvider provider, CancellationToken token) =>
         {
@@ -31,6 +42,7 @@ public static class DraftEndpoints
             if (input.UnitIndex < 0 || input.UnitIndex >= source.Units.Length) throw new FactoryException("找不到這個單元。");
             var unit = source.Units[input.UnitIndex];
             var plan = QuestionPlanning.Build(source, input.UnitIndex);
+            QuestionPlanning.RequireGeneratable(plan);
             var models = await provider.Models(token); if (input.Model is null || !models.Any(m => m.Provider == input.Model.Provider && m.Model == input.Model.Model)) throw new FactoryException("選擇的本機模型尚未提供服務，請啟動模型後重新整理清單。");
             var batch = new DraftBatch { DocumentId = id, UnitIndex = input.UnitIndex, UnitName = unit.Name, SourceHash = DraftQuality.Fingerprint(source), Snapshot = source, Model = input.Model, Plan = plan };
             drafts.Create(batch); queue.Enqueue(batch.Id); return Results.Accepted($"/api/batches/{batch.Id}", View(batch, documents));
@@ -44,7 +56,7 @@ public static class DraftEndpoints
         });
         app.MapPost("/api/batches/{id:guid}/cancel", (Guid id, DraftStore drafts, GenerationQueue queue, DocumentStore documents) =>
         {
-            var batch = drafts.Update(id, batch => { if (batch.Status is not (BatchStatus.Queued or BatchStatus.Generating)) throw new FactoryException("這批草稿目前沒有進行中的工作。"); batch.Status = BatchStatus.Cancelled; batch.Message = "已停止，現有草稿與產生紀錄保留"; }); queue.Cancel(id); return View(batch, documents);
+            var batch = drafts.Update(id, batch => { if (batch.Status is not (BatchStatus.Queued or BatchStatus.Generating)) throw new FactoryException("這批草稿目前沒有進行中的工作。"); batch.GenerationCompletedAt = DateTimeOffset.UtcNow; batch.Status = BatchStatus.Cancelled; batch.Message = "已停止，現有草稿與產生紀錄保留"; }); queue.Cancel(id); return View(batch, documents);
         });
         app.MapPut("/api/batches/{id:guid}/questions/{questionId:guid}", (Guid id, Guid questionId, ReviewQuestionRequest input, DraftStore drafts, DocumentStore documents) =>
         {
@@ -109,7 +121,7 @@ public static class DraftEndpoints
         app.MapGet("/api/batches/{id:guid}/approved", (Guid id, DraftStore drafts, DocumentStore documents) =>
         {
             var batch = drafts.Get(id); DraftQuality.RequireCurrent(batch, documents.Get(batch.DocumentId)); DraftQuality.Valid(DraftQuality.ReleaseErrors(batch));
-            var artifact = new { format = "learning-adventure:approved-drafts", version = 1, batchId = batch.Id, sourceDocumentId = batch.DocumentId, sourceHash = batch.SourceHash, unitName = batch.UnitName, plan = QuestionPlanning.For(batch), skippedQuestions = batch.SkippedQuestions, metadata = (object?)batch.Snapshot.Confirmation ?? batch.Snapshot.Classification, questions = batch.Questions.Where(q => q.Status == ReviewStatus.Approved).OrderBy(q => q.Slot).Select(q => new { q.Id, q.Content, q.ReviewedAt }), entries = batch.Entries.Where(e => e.Status == ReviewStatus.Approved).OrderBy(e => e.Slot).Select(e => new { e.Id, e.Content, e.ReviewedAt }) };
+            var artifact = new { format = "learning-adventure:approved-drafts", version = 1, batchId = batch.Id, sourceDocumentId = batch.DocumentId, sourceHash = batch.SourceHash, unitName = batch.UnitName, plan = QuestionPlanning.For(batch), skippedQuestions = batch.SkippedQuestions, metadata = (object?)batch.Snapshot.Confirmation ?? batch.Snapshot.Classification, questions = batch.Questions.Where(q => q.Status == ReviewStatus.Approved).OrderBy(q => q.Slot).Select(q => new { q.Id, q.Slot, pointIndex = (int?)QuestionPlanning.Target(batch, q.Slot).PointIndex, q.Content, q.ReviewedAt }), entries = batch.Entries.Where(e => e.Status == ReviewStatus.Approved).OrderBy(e => e.Slot).Select(e => new { e.Id, e.Content, e.ReviewedAt }) };
             return Results.File(JsonSerializer.SerializeToUtf8Bytes(artifact, FactoryJson.Options), "application/json", $"approved-drafts-{id}.json");
         });
     }

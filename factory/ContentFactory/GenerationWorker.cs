@@ -25,7 +25,7 @@ public sealed class GenerationWorker(DraftStore drafts, DocumentStore documents,
             catch (Exception error)
             {
                 logger.LogWarning("草稿批次 {Id} 未完成：{ErrorType}", id, error.GetType().Name);
-                drafts.Update(id, b => { if (b.Status is BatchStatus.Cancelled or BatchStatus.Stale) return; b.Status = BatchStatus.Failed; b.Error = error is FactoryException ? error.Message : error is OperationCanceledException ? "本機模型處理逾時，可更換模型或縮短單元後重試。" : "本機模型回傳格式不符，已保留產生紀錄，請重試或更換模型。"; b.Message = "草稿產生未完成，已保留現有內容"; });
+                drafts.Update(id, b => { if (b.Status is BatchStatus.Cancelled or BatchStatus.Stale) return; b.GenerationCompletedAt = DateTimeOffset.UtcNow; b.Status = BatchStatus.Failed; b.Error = error is FactoryException ? error.Message : error is OperationCanceledException ? "本機模型處理逾時，已保留進度，可重試續跑或更換模型。" : "本機模型回傳格式不符，已保留產生紀錄，請重試或更換模型。"; b.Message = "草稿產生未完成，已保留現有內容"; });
             }
             finally { queue.Active.TryRemove(id, out _); }
         }
@@ -41,7 +41,8 @@ public sealed class GenerationWorker(DraftStore drafts, DocumentStore documents,
     public async Task Process(Guid id, CancellationToken token)
     {
         var initial = Current(id); if (initial.Status != BatchStatus.Queued) return;
-        drafts.Update(id, b => { b.Status = BatchStatus.Generating; b.Error = null; b.Message = "正在使用本機模型整理草稿"; });
+        QuestionPlanning.RequireGeneratable(QuestionPlanning.For(initial));
+        drafts.Update(id, b => { b.GenerationStartedAt = DateTimeOffset.UtcNow; b.GenerationCompletedAt = null; b.Status = BatchStatus.Generating; b.Error = null; b.Message = "正在使用本機模型整理草稿"; });
         if (initial.PendingItemId is { } itemId)
         {
             if (initial.PendingKind == "question")
@@ -78,7 +79,7 @@ public sealed class GenerationWorker(DraftStore drafts, DocumentStore documents,
                 drafts.Update(id, b => { b.Entries = entries.Select((content, index) => new EntryDraft { Slot = index, Content = content }).ToList(); });
             }
         }
-        Current(id); drafts.Update(id, b => { QuestionPlanning.BalanceChoices(b); b.Status = BatchStatus.Review; b.Progress = 100; b.Message = "草稿已建立，請逐題對照來源並審核"; b.PendingItemId = null; b.PendingKind = null; b.Instruction = ""; });
+        Current(id); drafts.Update(id, b => { QuestionPlanning.BalanceChoices(b); b.GenerationCompletedAt = DateTimeOffset.UtcNow; b.Status = BatchStatus.Review; b.Progress = 100; b.Message = b.IsPreview ? "模型預覽已完成，請人工對照判斷" : "草稿已建立，請逐題對照來源並審核"; b.PendingItemId = null; b.PendingKind = null; b.Instruction = ""; });
     }
     private async Task<QuestionContent[]> Questions(Guid id, int[] slots, CancellationToken token, int group = -1)
     {

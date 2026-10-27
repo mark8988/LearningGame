@@ -3,3 +3,5 @@
 @media(max-width:650px){.generation-settings{grid-template-columns:1fr}.generation-start{align-items:stretch;flex-direction:column}.draft-item-picker{grid-template-columns:repeat(3,minmax(0,1fr))}.draft-options{grid-template-columns:1fr}.draft-editor-heading{align-items:flex-start;flex-direction:column}.draft-review-actions{flex-direction:column}.draft-release{padding:17px}.draft-counters{gap:10px}.draft-source pre{max-height:220px}.draft-kind-tabs button{padding:12px 10px;font-size:12px}}
 
 .generation-plan{font-size:12px;line-height:1.9;margin:16px 0;color:#657452}.generation-plan details{padding:12px;background:#f5f7ef;border-radius:10px}.generation-plan ol{max-height:260px;overflow:auto;padding-left:22px}.generation-plan li{margin:8px 0;overflow-wrap:anywhere}
+
+.draft-point-reference{padding:12px 15px;background:#f3f7ec;border-radius:10px;font-size:12px;line-height:1.9;margin:10px 0 20px}.draft-point-reference p{margin:6px 0;overflow-wrap:anywhere}

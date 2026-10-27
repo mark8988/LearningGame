@@ -40,6 +40,9 @@ public sealed class DraftBatch
     public string SourceHash { get; set; } = "";
     public SourceDocument Snapshot { get; set; } = null!;
     public ModelSelection Model { get; set; } = new("llamaCpp", "");
+    public bool IsPreview { get; set; }
+    public DateTimeOffset? GenerationStartedAt { get; set; }
+    public DateTimeOffset? GenerationCompletedAt { get; set; }
     public BatchStatus Status { get; set; } = BatchStatus.Queued;
     public string Message { get; set; } = "等待本機模型產題";
     public string? Error { get; set; }

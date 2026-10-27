@@ -78,6 +78,7 @@ public static class DraftQuality
         var all = questions.ToArray(); var errors = new List<string>();
         if (batch?.Plan is { } plan)
         {
+            if (plan.UsesCourseMinimum && all.Length < plan.MinimumQuestionCount) errors.Add($"目前僅有 {all.Length} 題已核准，未達本單元至少 {plan.MinimumQuestionCount} 題；若來源不足，請補充教材再建立新批次。");
             var targets = plan.Targets.Where(t => !batch.SkippedQuestions.ContainsKey(t.Slot)).ToArray();
             if (all.Length == 0) errors.Add("至少需要一題有來源支持且已核准的題目。");
             if (all.Length != targets.Length || !all.Select(q => q.Slot).Order().SequenceEqual(targets.Select(t => t.Slot).Order())) errors.Add("請完成所有未略過考點的產題及人工核准。");
@@ -105,6 +106,7 @@ public static class DraftQuality
     {
         var errors = new List<string>();
         if (batch.Status != BatchStatus.Review) errors.Add("請等待草稿產生完成。");
+        if (batch.IsPreview) errors.Add("模型預覽僅供人工比較，不能核准或匯出成正式題庫草稿。");
         var questions = batch.Questions.Where(q => q.Status == ReviewStatus.Approved).ToArray(); var entries = batch.Entries.Where(e => e.Status == ReviewStatus.Approved).ToArray();
         errors.AddRange(SetErrors(questions, batch)); var minimumEntries = Math.Min(2, QuestionPlanning.For(batch).EntryCount);
         if (entries.Length < minimumEntries || entries.Length > 3) errors.Add($"此單元需要 {minimumEntries}–3 篇已核准知識條目。");

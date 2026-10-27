@@ -5,16 +5,25 @@ namespace ContentFactory;
 
 public sealed record KnowledgePoint(int PageNumber, string Text, int Complexity, string[] Reasons);
 public sealed record QuestionTarget(int Slot, int PointIndex, int PageNumber, string Type, int Difficulty, int AnswerIndex, string Intent);
-public sealed record QuestionPlan(string Method, KnowledgePoint[] Points, QuestionTarget[] Targets, int EntryCount)
+public sealed record QuestionPlan(string Method, KnowledgePoint[] Points, QuestionTarget[] Targets, int EntryCount, int? RecommendedCount = null)
 {
     public int QuestionCount => Targets.Length;
     public int ChoiceCount => Targets.Count(t => t.Type == "choice");
     public int BlankCount => Targets.Count(t => t.Type == "fillBlank");
     public int[] DifficultyCounts => Enumerable.Range(1, 3).Select(d => Targets.Count(t => t.Difficulty == d)).ToArray();
+    public bool UsesCourseMinimum => Method == QuestionPlanning.CourseMethod;
+    public int MinimumQuestionCount => UsesCourseMinimum ? QuestionPlanning.MinimumQuestions : 1;
+    public int TargetQuestionCount => RecommendedCount ?? QuestionCount;
+    public bool CanGenerate => !UsesCourseMinimum || QuestionCount >= MinimumQuestionCount;
+    public int CoveredPointCount => Targets.Select(t => t.PointIndex).Where(i => i >= 0).Distinct().Count();
+    public string[] Warnings => !CanGenerate ? [$"目前教材僅能規劃 {QuestionCount} 題，未達每單元至少 {MinimumQuestionCount} 題；請補充完整單元內容，不以重複改寫湊題數。"] : [];
 }
 
 public static class QuestionPlanning
 {
+    public const int MinimumQuestions = 20;
+    public const string CourseMethod = "source-rules-v2-min20";
+    public static void RequireGeneratable(QuestionPlan plan) { if (!plan.CanGenerate) throw new FactoryException(string.Join('；', plan.Warnings)); }
     public static string NormalizeText(string text) => Regex.Replace(Regex.Replace(text.Normalize(NormalizationForm.FormKC), @"\s+", " "), @"(?<=[\u4e00-\u9fff])\s+(?=[\u4e00-\u9fff])", "");
     // These are explainable estimates, not a claim of calibrated academic difficulty.
     private static readonly (string Reason, string Pattern)[] ComplexitySignals =
@@ -45,15 +54,25 @@ public static class QuestionPlanning
             }
         }
         if (points.Count == 0) throw new FactoryException("單元內沒有足夠可辨識的知識敘述，請補充或確認教材文字。");
+        var recommended = Math.Max(points.Sum(p => p.Complexity + 1), MinimumQuestions);
+        var count = Math.Min(recommended, points.Sum(p => p.Complexity + 2));
+        // Cover every knowledge point; there is no per-unit question limit.
+        var selected = Enumerable.Range(0, points.Count).ToArray();
         var targets = new List<QuestionTarget>();
-        for (var index = 0; index < points.Count; index++)
+        var intents = new[] { "理解與辨識核心概念", "具體情境應用，使用與理解題不同的情境", "判斷常見錯誤並說明理由", "比較條件或由資料推論", "整合概念，進行多步驟推理" };
+        var difficulties = new[] { 1, 2, 2, 3, 3 };
+        for (var variant = 0; variant < intents.Length && targets.Count < count; variant++)
         {
-            var point = points[index];
-            for (var variant = 0; variant < point.Complexity; variant++)
-                targets.Add(new(targets.Count, index, point.PageNumber, "choice", variant + 1, 0, new[] { "理解知識重點", "情境應用", "比較與推論" }[variant]));
+            var eligible = selected.Where(i => variant < points[i].Complexity + 2).OrderByDescending(i => points[i].Complexity).ThenBy(i => i).ToArray();
+            var needed = Math.Min(eligible.Length, count - targets.Count);
+            for (var i = 0; i < needed; i++)
+            {
+                var index = eligible.Length == needed ? eligible[i] : eligible[i * eligible.Length / needed]; var point = points[index];
+                targets.Add(new(targets.Count, index, point.PageNumber, "choice", difficulties[variant], 0, intents[variant]));
+            }
         }
-        var blanks = targets.Count < 2 ? 0 : Math.Max(1, (int)Math.Round(targets.Count / 3.0)); var choice = 0;
-        var blankPoints = Enumerable.Range(0, points.Count).Where(i => (i + 1) * blanks / points.Count > i * blanks / points.Count).ToHashSet();
+        var blanks = Math.Min(selected.Length, (int)Math.Round(targets.Count / 3.0)); var choice = 0;
+        var blankPoints = Enumerable.Range(0, selected.Length).Where(i => (i + 1) * blanks / selected.Length > i * blanks / selected.Length).Select(i => selected[i]).ToHashSet();
         var usedBlankPoints = new HashSet<int>();
         for (var index = 0; index < targets.Count; index++)
         {
@@ -61,7 +80,7 @@ public static class QuestionPlanning
             var blank = blankPoints.Contains(targets[index].PointIndex) && usedBlankPoints.Add(targets[index].PointIndex);
             targets[index] = targets[index] with { Type = blank ? "fillBlank" : "choice", AnswerIndex = blank ? 0 : choice++ % 4, Difficulty = blank ? Math.Min(2, points[targets[index].PointIndex].Complexity) : targets[index].Difficulty, Intent = blank ? "原文重點回想" : targets[index].Intent };
         }
-        return new("source-rules-v1", points.ToArray(), targets.ToArray(), Math.Min(3, points.Count));
+        return new(CourseMethod, points.ToArray(), targets.ToArray(), Math.Min(3, points.Count), recommended);
     }
     public static QuestionPlan For(DraftBatch batch)
     {
@@ -69,6 +88,12 @@ public static class QuestionPlanning
         // Preserve review and regeneration of pre-adaptive batches without rewriting their data.
         var unit = batch.Snapshot.Units[batch.UnitIndex]; var pages = batch.Snapshot.Pages.Where(p => p.Number >= unit.StartPage && p.Number <= unit.EndPage).ToArray();
         return new("legacy-12", [], Enumerable.Range(0, 12).Select(s => new QuestionTarget(s, -1, pages[s * pages.Length / 12].Number, DraftQuality.IsBlankSlot(s) ? "fillBlank" : "choice", DraftQuality.Difficulties[s], DraftQuality.IsBlankSlot(s) ? 0 : DraftQuality.ChoicePosition(s), "依原批次考點命題")).ToArray(), 3);
+    }
+    public static QuestionPlan Preview(QuestionPlan source)
+    {
+        var first = source.Points[0]; var secondIndex = source.Points.Length > 1 ? 1 : 0; var second = source.Points[secondIndex];
+        return new("model-preview-v1", source.Points,
+            [new(0, 0, first.PageNumber, "choice", 1, 0, "理解與辨識核心概念"), new(1, secondIndex, second.PageNumber, "fillBlank", Math.Min(2, second.Complexity), 0, "原文重點回想")], 0);
     }
     public static QuestionTarget Target(DraftBatch batch, int slot) => For(batch).Targets.Single(t => t.Slot == slot);
 

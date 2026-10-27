@@ -19,7 +19,7 @@ public sealed class DraftStore
     {
         lock (gate)
         {
-            if (batches.Values.Any(b => b.DocumentId == batch.DocumentId && b.UnitIndex == batch.UnitIndex && b.Status is BatchStatus.Queued or BatchStatus.Generating)) throw new FactoryException("這個單元已有產題工作，請先等待或停止。");
+            if (batches.Values.Any(b => b.DocumentId == batch.DocumentId && b.UnitIndex == batch.UnitIndex && b.IsPreview == batch.IsPreview && (!batch.IsPreview || b.Model == batch.Model) && b.Status is BatchStatus.Queued or BatchStatus.Generating)) throw new FactoryException("這個單元或模型已有產題工作，請先等待或停止。");
             Persist(batch); batches[batch.Id] = FactoryJson.Clone(batch);
         }
     }

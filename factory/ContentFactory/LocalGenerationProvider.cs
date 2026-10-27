@@ -97,7 +97,14 @@ public static class GenerationPrompts
         var quote = (item.GetProperty("sourceQuote").GetString() ?? "").Normalize(System.Text.NormalizationForm.FormKC);
         var answer = (item.GetProperty("acceptedAnswers")[0].GetString() ?? "").Normalize(System.Text.NormalizationForm.FormKC);
         var index = string.IsNullOrWhiteSpace(answer) ? -1 : quote.IndexOf(answer, StringComparison.OrdinalIgnoreCase);
-        if (index < 0 || quote.IndexOf(answer, index + answer.Length, StringComparison.OrdinalIgnoreCase) >= 0) throw new FormatException("填空標準答案必須逐字出現在來源摘錄中，且只能出現一次；請改選完整句子及其中的詞語。");
+        if (index >= 0 && quote.IndexOf(answer, index + answer.Length, StringComparison.OrdinalIgnoreCase) >= 0)
+        {
+            // A word can legitimately recur inside a compound, e.g. 溫度／溫度計.
+            // Use an intact cited clause instead of rejecting it or creating multiple gaps.
+            var clause = Regex.Split(quote, @"[，,；;。！？]").Select(p => p.Trim()).FirstOrDefault(p => p.Length >= 8 && Regex.Matches(p, Regex.Escape(answer), RegexOptions.IgnoreCase).Count == 1);
+            if (clause is not null) { quote = clause; index = quote.IndexOf(answer, StringComparison.OrdinalIgnoreCase); }
+        }
+        if (index < 0 || quote.IndexOf(answer, index + answer.Length, StringComparison.OrdinalIgnoreCase) >= 0) throw new FormatException("填空標準答案必須出現在來源摘錄中，請選擇能獨立挖空、答案只出現一次的原文子句。");
         return "請填入適當詞語：" + quote[..index] + "___" + quote[(index + answer.Length)..];
     }
     public static QuestionContent Question(JsonElement item, Guid documentId) => new(QuestionStem(item), item.GetProperty("options").EnumerateArray().Select(o => o.GetString() ?? "").ToArray(), item.GetProperty("answerIndex").GetInt32(), item.GetProperty("explanation").GetString() ?? "", item.GetProperty("difficulty").GetInt32(), Reference(item, documentId), item.GetProperty("type").GetString() ?? "choice", item.GetProperty("acceptedAnswers").EnumerateArray().Select(a => a.GetString() ?? "").ToArray());
