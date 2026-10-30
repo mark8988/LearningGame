@@ -1,7 +1,8 @@
 import { expect, test } from '@playwright/test';
 import { resolve } from 'node:path';
+import { playFactoryPack } from './play-pack';
 
-test('國中教材產生混合草稿、人工審核、版本及來源失效', async ({ page }, info) => {
+test('國中教材產生混合草稿、人工審核、版本及來源失效', async ({ page, browser }, info) => {
   test.setTimeout(900000);
   const models = await page.request.get('/api/generation/models').then(r => r.json());
   test.skip(!models.models.some((m: { label: string }) => m.label.includes('Qwen')), '需啟動本機 Qwen；教材不會傳至雲端。');
@@ -44,11 +45,20 @@ test('國中教材產生混合草稿、人工審核、版本及來源失效', as
   const approve = async (kind: string, item: { id: string; revision: number }) => { const response = await page.request.post(`/api/batches/${id}/${kind}/${item.id}/review`, { data: { revision: item.revision, action: 'approve' } }); expect(response.ok()).toBe(true); };
   batch = await get(); for (const q of batch.questions) await approve('questions', q); for (const e of batch.entries.slice(0, 2)) await approve('entries', e);
   batch = await get(); expect(batch.canRelease).toBe(true); const exported = await page.request.get(`/api/batches/${id}/approved`).then(r => r.json()); expect(exported.format).toBe('learning-adventure:approved-drafts'); expect(exported.questions).toHaveLength(batch.questions.length); expect(exported.entries).toHaveLength(2);
+  const packaging = page.getByRole('region', { name: '正式題庫打包' });
+  await expect(packaging.getByRole('checkbox').first()).toBeEnabled(); await packaging.getByRole('checkbox').first().check();
+  await packaging.getByLabel('正式題庫名稱').fill(`CF-C測量題庫-${info.project.name}-${Date.now()}`);
+  await packaging.getByRole('button', { name: '打包所選單元', exact: true }).click(); await expect(packaging.getByRole('status')).toContainText('遊戲題庫已建立');
+  const record = (await page.request.get(`/api/documents/${document.id}/packages`).then(r => r.json()))[0];
+  const downloadPromise = page.waitForEvent('download'); await packaging.getByRole('button', { name: '下載遊戲題庫 JSON', exact: true }).first().click(); const download = await downloadPromise;
+  const packageFile = resolve(`.local/cfc-game-${info.project.name}-${Date.now()}.json`); await download.saveAs(packageFile);
+  await playFactoryPack(browser, packageFile, info);
   const target = batch.questions.find((q: { id: string }) => q.id === blank.id); const other = batch.questions.find((q: { id: string }) => q.id !== target.id);
   const regeneration = await page.request.post(`/api/batches/${id}/questions/${target.id}/regenerate`, { data: { revision: target.revision, instruction: '保留填空題型，以教材原文重新命題' } }); expect(regeneration.status()).toBe(202);
   await expect.poll(async () => (await get()).status, { timeout: 360000 }).toBe('review'); batch = await get();
   expect(batch.questions.find((q: { id: string }) => q.id === target.id).status).toBe('draft'); expect(batch.questions.find((q: { id: string }) => q.id === target.id).versions).toBeGreaterThan(3); expect(batch.questions.find((q: { id: string }) => q.id === other.id).status).toBe('approved'); expect((await page.request.get(`/api/batches/${id}/approved`)).status()).toBe(400);
-  await page.screenshot({ path: `.local/course-draft-review-${info.project.name}.png`, fullPage: true });
+  expect((await page.request.get(`/api/packages/${record.id}/download`)).status()).toBe(400);
+  await page.screenshot({ path: `.local/cfc-draft-review-${info.project.name}-${Date.now()}.png`, fullPage: true });
   const doc = await page.request.get(`/api/documents/${document.id}`).then(r => r.json());
   const response = await page.request.post(`/api/documents/${document.id}/confirm`, { data: { revision: doc.revision, metadata: { school: '國中', grade: 9, subject: '自然科學', publisher: '自編', units: doc.units } } }); expect(response.ok()).toBe(true);
   batch = await get(); expect(batch.sourceError).toContain('已變更'); expect((await page.request.post(`/api/batches/${id}/questions/${target.id}/review`, { data: { revision: target.revision, action: 'approve' } })).status()).toBe(400);

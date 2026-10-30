@@ -30,6 +30,7 @@ jobs:
           dotnet-version: '8.0.x'
       - run: dotnet restore factory/ContentFactory.Tests/ContentFactory.Tests.csproj --locked-mode
       - run: dotnet test factory/ContentFactory.Tests/ContentFactory.Tests.csproj --no-restore
+      - run: node scripts/check-factory-contract.mjs
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

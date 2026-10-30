@@ -1,7 +1,11 @@
 import { z } from 'zod';
 
 const id = z.string().min(1);
-export const questionSchema = z.object({ id, unitId: id, stem: id, type: z.enum(['choice', 'fillBlank']).optional(), options: z.array(id).max(4).default([]), answerIndex: z.number().int().min(0).max(3).optional(), acceptedAnswers: z.array(z.string().trim().min(1).max(120)).min(1).max(8).optional(), explanation: id, difficulty: z.union([z.literal(1), z.literal(2), z.literal(3)]), zhuyin: z.string().optional() }).superRefine((question, ctx) => {
+export const sourceReferenceSchema = z.object({ documentId: z.string().uuid(), pageNumber: z.number().int().positive(), quote: z.string().min(8).max(500) });
+const provenanceSchema = z.object({ format: z.literal('learning-adventure:factory'), schemaVersion: z.literal(1), packageId: id, documentId: z.string().uuid(), sourceHash: z.string().regex(/^[A-Fa-f0-9]{64}$/), sourceTitle: id, createdAt: z.string().datetime({ offset: true }), units: z.array(z.object({ unitId: id, unitIndex: z.number().int().nonnegative(), batchId: z.string().uuid(), batchRevision: z.number().int().nonnegative(), startPage: z.number().int().positive(), endPage: z.number().int().positive() })).min(1) });
+export const knowledgePointSchema = z.object({ id, unitId: id, text: id, sourceRef: sourceReferenceSchema });
+export type KnowledgePoint = z.infer<typeof knowledgePointSchema>;
+export const questionSchema = z.object({ id, unitId: id, stem: id, sourceRef: sourceReferenceSchema.optional(), knowledgePointId: id.optional(), sourceQuestionId: z.string().uuid().optional(), reviewedAt: z.string().datetime({ offset: true }).optional(), type: z.enum(['choice', 'fillBlank']).optional(), options: z.array(id).max(4).default([]), answerIndex: z.number().int().min(0).max(3).optional(), acceptedAnswers: z.array(z.string().trim().min(1).max(120)).min(1).max(8).optional(), explanation: id, difficulty: z.union([z.literal(1), z.literal(2), z.literal(3)]), zhuyin: z.string().optional() }).superRefine((question, ctx) => {
   if (question.type === 'fillBlank') {
     if ((question.stem.match(/_{3,}/g) ?? []).length !== 1) ctx.addIssue({ code: 'custom', path: ['stem'], message: '填空題須有一個 ___ 空格' });
     if (!question.acceptedAnswers?.length) ctx.addIssue({ code: 'custom', path: ['acceptedAnswers'], message: '填空題須提供可接受答案' });
@@ -15,8 +19,8 @@ export const itemSchema = z.object({ id, kind: z.enum(['furniture', 'outfit']), 
   if (item.kind === 'furniture' && (!item.gridW || !item.gridH)) ctx.addIssue({ code: 'custom', path: ['gridW'], message: '家具必須提供 gridW 與 gridH' });
   if (item.kind === 'outfit' && !item.outfitSlot) ctx.addIssue({ code: 'custom', path: ['outfitSlot'], message: '裝扮必須提供 outfitSlot' });
 });
-export const manifestSchema = z.object({ id, name: id, version: id, subject: id, grade: z.number().int().min(1).max(12), unitIds: z.array(id).min(1), demo: z.boolean() });
-export const encyclopediaSchema = z.object({ id, unitId: id, title: id, text: id, illustration: z.enum(['plant', 'animal', 'weather', 'magnet', 'water']) });
+export const manifestSchema = z.object({ id, name: id, version: id, subject: id, grade: z.number().int().min(1).max(12), unitIds: z.array(id).min(1), demo: z.boolean(), provenance: provenanceSchema.optional() });
+export const encyclopediaSchema = z.object({ id, unitId: id, title: id, text: id, illustration: z.enum(['plant', 'animal', 'weather', 'magnet', 'water']), sourceRef: sourceReferenceSchema.optional(), reviewedAt: z.string().datetime({ offset: true }).optional() });
 export const achievementSchema = z.object({ id, name: id, metric: z.enum(['correct', 'battlesWon', 'collection', 'placed']), target: z.number().int().positive(), rewardItemId: id.optional(), coins: z.number().int().nonnegative().optional() }).refine(value => !!value.rewardItemId || (value.coins ?? 0) > 0, { message: '成就必須提供道具或金幣獎勵' });
 export type Question = z.infer<typeof questionSchema>;
 export type Unit = z.infer<typeof unitSchema>;
@@ -26,4 +30,4 @@ export const outfitModelSchema = z.object({ asset: id, slot: z.enum(['hair', 'to
 export type OutfitModel = z.infer<typeof outfitModelSchema>;
 export const dropTableSchema = z.object({ id, common: z.array(id).min(1), rare: z.array(id).min(1), epic: z.array(id).min(1) });
 export type DropTable = z.infer<typeof dropTableSchema>;
-export interface ContentPack { manifest: z.infer<typeof manifestSchema>; questions: Question[]; units: Unit[]; items: CosmeticItem[]; outfitModels: OutfitModel[]; dropTables: DropTable[]; encyclopedia: z.infer<typeof encyclopediaSchema>[]; achievements: z.infer<typeof achievementSchema>[] }
+export interface ContentPack { knowledgePoints?: KnowledgePoint[]; manifest: z.infer<typeof manifestSchema>; questions: Question[]; units: Unit[]; items: CosmeticItem[]; outfitModels: OutfitModel[]; dropTables: DropTable[]; encyclopedia: z.infer<typeof encyclopediaSchema>[]; achievements: z.infer<typeof achievementSchema>[] }

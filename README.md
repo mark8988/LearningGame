@@ -23,7 +23,8 @@ npm run test:e2e # Edge 瀏覽器，平板觸控與手機主流程測試
 npm run test:offline # 正式建置斷網後通關、購買、擺放及重開
 npm run build:factory # 建置本機內容工廠介面
 npm run test:factory # ASP.NET Core 後端測試
-npm run test:factory:e2e # 本機教材上傳、OCR、歸類與人工確認
+npm run test:factory:e2e # 上傳、產題審核、打包、匯入及離線遊玩
+node scripts/check-factory-contract.mjs # 後端測試後，驗證內容包與遊戲格式相容
 ```
 
 E2E 預設使用本機 Microsoft Edge，不會自動安裝瀏覽器；若環境沒有 Edge，請在 `playwright.config.ts` 改用已安裝的 Playwright Chromium。測試會自行啟動 4173 埠的本機網站。
@@ -47,15 +48,15 @@ Vite 使用相對資源路徑 `base: './'`，可部署在 `/LearningGame/` 子�
 - Phase 6：家長驗證、學習報表、題庫／存檔備份還原、內容包獨立進度、PWA 離線、音效及閱讀設定。
 - CF-A：本機 ASP.NET Core 8 內容工廠，上傳 PDF／EPUB／圖片、文字擷取／本機 OCR、學制科目歸類、單元切分與家長確認。
 - CF-B：本機 Qwen／Ollama 產生選擇題、填空題與知識草稿，逐項人工審核及來源對照，支援台灣國小至國中教材。
-- 後續 CF-C：正式遊戲題庫打包。遊戲仍不依賴後端即可運行。
+- CF-C：已審核單元打包、來源與版本綁定、家長模式匯入及離線遊玩。操作見 [CONTENT-PACKAGING.md](docs/CONTENT-PACKAGING.md)。
 
-目前版本 0.10.0，遊戲軌 Phase 0–6、CF-A／CF-B 本機流程已開發。新遊戲贈送四件家具；服裝可從商店及冒險取得，再由小屋或側邊導覽進入衣櫃穿戴。可上傳教材、整理文字、產生混合題型並審核；工廠草稿自動打包成可遊玩的題庫仍待 CF-C。內建仍為小三自然展示包，沒有內附完整國中課程。
+目前版本 0.11.0，遊戲軌 Phase 0–6、CF-A–CF-C 本機流程已開發。新遊戲贈送四件家具；服裝可從商店及冒險取得，再由小屋或側邊導覽進入衣櫃穿戴。可上傳教材、整理文字、產生混合題型並審核；已核准單元可打包後匯入遊戲。內建仍為小三自然展示包，沒有內附完整國中課程。
 
 ## 程式組織
 
 `src/app/` 畫面；`src/components/` 程序式 3D 場景與模型；`src/stores/` Zustand 遊戲狀態；`src/logic/` 可測試純函數及存檔介面；`src/data/` Zod 型別、格式與跨檔引用驗證；`content-packs/science-g3/` 五單元、60 題示範資料；`tests/` Playwright 流程。
 
-示範題庫僅供開發測試，非課本擷取內容，正式教材須經未來內容工廠及人工審核。`scripts/generate-demo-pack.mjs` 可重新產生展示包，執行會覆寫內建展示 JSON，請勿用於保留人工編修的內容。
+示範題庫僅供開發測試，非課本擷取內容，正式教材須經內容工廠及人工審核。`scripts/generate-demo-pack.mjs` 可重新產生展示包，執行會覆寫內建展示 JSON，請勿用於保留人工編修的內容。
 
 ## 存檔與數值
 

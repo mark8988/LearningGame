@@ -9,11 +9,12 @@ export function readTransfer(raw: string): unknown {
   try { return JSON.parse(raw); } catch { throw new Error('檔案不是有效的 JSON。'); }
 }
 export function packFiles(pack: ContentPack) {
-  return { 'pack.json': pack.manifest, 'questions.json': pack.questions, 'units.json': pack.units, 'items.json': pack.items, 'outfit-models.json': pack.outfitModels, 'drops.json': pack.dropTables, 'encyclopedia.json': pack.encyclopedia, 'achievements.json': pack.achievements };
+  return { 'pack.json': pack.manifest, 'questions.json': pack.questions, 'units.json': pack.units, 'items.json': pack.items, 'outfit-models.json': pack.outfitModels, 'drops.json': pack.dropTables, 'encyclopedia.json': pack.encyclopedia, 'achievements.json': pack.achievements, ...(pack.knowledgePoints ? { 'knowledge-points.json': pack.knowledgePoints } : {}) };
 }
 export function exportPack(pack: ContentPack) { return JSON.stringify({ format: 'learning-adventure:pack', version: 1, files: packFiles(pack) }, null, 2); }
 export function importPack(raw: string) {
   const data = readTransfer(raw) as { format?: string; version?: number; files?: Record<string, unknown> } | null;
+  if ((data as { format?: string } | null)?.format === 'learning-adventure:approved-drafts') throw new Error('這是審核草稿，請在內容工廠使用「打包所選單元」下載遊戲題庫。');
   if (!data || data.format !== 'learning-adventure:pack' || data.version !== 1 || !data.files) throw new Error('請選擇版本 1 的題庫備份。');
   const pack = validatePack(data.files);
   return pack;

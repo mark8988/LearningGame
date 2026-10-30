@@ -6,6 +6,10 @@
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
   </PropertyGroup>
   <ItemGroup>
+    <EmbeddedResource Include="../../content-packs/science-g3/items.json" LogicalName="FactoryAssets.items.json" />
+    <EmbeddedResource Include="../../content-packs/science-g3/outfit-models.json" LogicalName="FactoryAssets.outfit-models.json" />
+    <EmbeddedResource Include="../../content-packs/science-g3/drops.json" LogicalName="FactoryAssets.drops.json" />
+    <EmbeddedResource Include="../../content-packs/science-g3/achievements.json" LogicalName="FactoryAssets.achievements.json" />
     <PackageReference Include="PdfPig" Version="0.1.16" />
     <PackageReference Include="PDFtoImage" Version="5.4.0" />
     <PackageReference Include="Tesseract" Version="5.2.0" />
